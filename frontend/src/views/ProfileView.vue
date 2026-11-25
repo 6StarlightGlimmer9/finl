@@ -63,7 +63,7 @@ onMounted(async () => {
 
     <div class="profile-layout">
       <section class="profile-main">
-        <div class="subheading"><h2>我评过的作品</h2><span>评分来自 ratings 表</span></div>
+        <div class="subheading"><h2>我评过的作品</h2><span>社区评分与详情页一致</span></div>
         <div v-if="!profile.ratings.length" class="empty-admin">还没有评分记录，去番剧详情页留下第一份真实评分吧。</div>
         <div v-else class="watching-list">
           <article v-for="item in profile.ratings" :key="`rating-${item.animeId}`" class="watching-item" @click="openDetail(item.animeId)">
@@ -71,7 +71,10 @@ onMounted(async () => {
             <div>
               <h3>{{ item.title }}</h3>
               <p>{{ formatDate(item.createdAt) }} · {{ item.mediaType === 'MOVIE' ? '电影' : '番剧' }}</p>
-              <strong><Star :size="14" fill="currentColor" /> {{ item.score }}/10</strong>
+              <div class="rating-line">
+                <span class="my-rating"><Star :size="14" fill="currentColor" /> 我的评分 {{ item.score }}/10</span>
+                <strong class="community-rating"><Star :size="14" fill="currentColor" /> {{ Number(item.animeScore ?? item.score).toFixed(1) }} <small>{{ Number(item.scoreCount || 0).toLocaleString() }}人</small></strong>
+              </div>
             </div>
             <Heart :size="18" />
           </article>

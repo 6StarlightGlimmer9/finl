@@ -546,7 +546,11 @@ body {
 .profile-comment-head span { color: var(--muted); font-size: 11px; }
 .profile-comment p { color: var(--muted); font-size: 12px; line-height: 1.8; margin: 0 0 8px; }
 .profile-comment small { display: inline-flex; align-items: center; gap: 5px; color: var(--pink); font-size: 11px; }
+.rating-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.rating-line .my-rating { display: inline-flex; align-items: center; gap: 4px; color: #e99a35; font-size: 12px; }
 .watching-item .watch-status { color: var(--pink); display: inline-flex; align-items: center; gap: 4px; }
+.watching-item .community-rating { color: var(--pink); display: inline-flex; align-items: center; gap: 4px; }
+.watching-item strong small { font-size: 10px; font-weight: 400; color: var(--muted); }
 
 /* 管理后台 */
 .admin-heading { padding-bottom: 24px; }

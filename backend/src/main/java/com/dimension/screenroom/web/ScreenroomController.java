@@ -99,6 +99,8 @@ public class ScreenroomController {
                     row.put("title", item.anime.title);
                     row.put("coverUrl", item.anime.coverUrl);
                     row.put("score", item.score);
+                    row.put("animeScore", item.anime.score.doubleValue());
+                    row.put("scoreCount", item.anime.scoreCount);
                     row.put("mediaType", item.anime.mediaType.name());
                     row.put("createdAt", item.createdAt == null ? null : item.createdAt.toString());
                     return row;
