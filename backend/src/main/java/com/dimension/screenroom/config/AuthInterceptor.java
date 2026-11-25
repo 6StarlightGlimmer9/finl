@@ -58,6 +58,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (path.equals("/api") || path.equals("/api/")) return true;
         if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) return true;
         if (path.equals("/api/anime") || path.equals("/api/search") || path.equals("/api/community")) return true;
+        if ("GET".equals(method) && (path.equals("/api/reviews") || path.equals("/api/bilibili/resolve")
+                || path.matches("/api/community/topics/\\d+"))) return true;
         return "GET".equals(method) && (path.matches("/api/anime/\\d+")
                 || path.matches("/api/anime/\\d+/rating")
                 || path.matches("/api/anime/\\d+/comments"));

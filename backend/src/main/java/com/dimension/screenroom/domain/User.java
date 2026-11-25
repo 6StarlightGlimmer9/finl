@@ -11,7 +11,7 @@ public class User {
     @Column(nullable = false, unique = true) public String username;
     @Column(nullable = false) public String nickname;
     @Column(nullable = false, unique = true) public String email;
-    @Column(name = "password_hash", nullable = false) public String passwordHash;
+    @Column(name = "password", nullable = false) public String password;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "enum('USER','ADMIN')")
     public Role role = Role.USER;

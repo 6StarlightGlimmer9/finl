@@ -3,10 +3,16 @@ package com.dimension.screenroom.web;
 import com.dimension.screenroom.domain.*;
 import com.dimension.screenroom.repository.*;
 import com.dimension.screenroom.util.PasswordUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.Hibernate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -19,6 +25,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,11 +40,22 @@ public class ScreenroomController {
     private final AuthTokenRepository authTokenRepository;
     private final WatchlistRepository watchlistRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
+    private final CommunityItemRepository communityItemRepository;
+    private final CommunityItemMemberRepository communityItemMemberRepository;
+    private final TopicPostRepository topicPostRepository;
+    private static final Pattern BILIBILI_SEASON = Pattern.compile("/bangumi/play/ss(\\d+)");
+    private static final Pattern BILIBILI_EPISODE = Pattern.compile("/bangumi/play/ep(\\d+)");
 
     public ScreenroomController(UserRepository userRepository, AnimeRepository animeRepository,
                                 RatingRepository ratingRepository, CommentRepository commentRepository,
                                 GenreRepository genreRepository, AuthTokenRepository authTokenRepository,
-                                WatchlistRepository watchlistRepository, CommentLikeRepository commentLikeRepository) {
+                                WatchlistRepository watchlistRepository, CommentLikeRepository commentLikeRepository,
+                                ReviewRepository reviewRepository, ReviewLikeRepository reviewLikeRepository,
+                                CommunityItemRepository communityItemRepository,
+                                CommunityItemMemberRepository communityItemMemberRepository,
+                                TopicPostRepository topicPostRepository) {
         this.userRepository = userRepository;
         this.animeRepository = animeRepository;
         this.ratingRepository = ratingRepository;
@@ -45,12 +64,62 @@ public class ScreenroomController {
         this.authTokenRepository = authTokenRepository;
         this.watchlistRepository = watchlistRepository;
         this.commentLikeRepository = commentLikeRepository;
+        this.reviewRepository = reviewRepository;
+        this.reviewLikeRepository = reviewLikeRepository;
+        this.communityItemRepository = communityItemRepository;
+        this.communityItemMemberRepository = communityItemMemberRepository;
+        this.topicPostRepository = topicPostRepository;
+    }
+
+    @GetMapping("/bilibili/resolve")
+    public ResponseEntity<Map<String, Object>> resolveBilibili(@RequestParam String url) {
+        String text = url == null ? "" : url.trim();
+        String key = null;
+        Matcher season = BILIBILI_SEASON.matcher(text);
+        if (season.find()) {
+            key = "season_id=" + season.group(1);
+        } else {
+            Matcher episode = BILIBILI_EPISODE.matcher(text);
+            if (episode.find()) key = "ep_id=" + episode.group(1);
+        }
+        if (key == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "仅支持 Bilibili 番剧链接"));
+        }
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("User-Agent", "Mozilla/5.0");
+            headers.set("Referer", "https://www.bilibili.com/");
+            String body = new RestTemplate().exchange(
+                    "https://api.bilibili.com/pgc/view/web/season?" + key,
+                    HttpMethod.GET, new HttpEntity<>(headers), String.class).getBody();
+            JsonNode root = new ObjectMapper().readTree(body == null ? "{}" : body);
+            JsonNode episodes = root.path("result").path("episodes");
+            String bvid = episodes.isArray() && episodes.size() > 0
+                    ? episodes.get(0).path("bvid").asText("") : "";
+            if (bvid.isEmpty()) {
+                return ResponseEntity.status(502).body(Map.of("message", "未找到可播放的 Bilibili 视频"));
+            }
+            Map<String, Object> result = new HashMap<>();
+            result.put("bvid", bvid);
+            result.put("embed", "https://player.bilibili.com/player.html?bvid=" + bvid + "&page=1&high_quality=1&danmaku=0");
+            result.put("web", "https://www.bilibili.com/video/" + bvid);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(502).body(Map.of("message", "Bilibili 资源解析失败"));
+        }
     }
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         User user = userRepository.findByUsernameOrEmail(request.username, request.username).orElse(null);
-        if (user == null || !PasswordUtil.matches(request.password, user.passwordHash)) {
+        boolean passwordOk = false;
+        if (user != null) {
+            passwordOk = request.password.equals(user.password);
+            if (!passwordOk && user.password != null && user.password.indexOf('$') > 0) {
+                passwordOk = PasswordUtil.matches(request.password, user.password);
+            }
+        }
+        if (!passwordOk) {
             return ResponseEntity.status(401).body(Map.of("message", "账号或密码错误"));
         }
         return ResponseEntity.ok(issueToken(user));
@@ -68,7 +137,7 @@ public class ScreenroomController {
         user.username = request.username.trim();
         user.email = request.email.trim();
         user.nickname = request.username.trim();
-        user.passwordHash = PasswordUtil.hash(request.password);
+        user.password = request.password;
         user.role = Role.USER;
         userRepository.save(user);
         return ResponseEntity.ok(issueToken(user));
@@ -160,7 +229,7 @@ public class ScreenroomController {
     @GetMapping("/anime")
     @Transactional(readOnly = true)
     public List<AnimeResponse> listAnime() {
-        return animeRepository.findAllByOrderByScoreDesc().stream().map(this::toAnimeResponse).collect(Collectors.toList());
+        return animeRepository.findAllByOrderBySortOrderAscScoreDesc().stream().map(this::toAnimeResponse).collect(Collectors.toList());
     }
 
     @GetMapping("/anime/{animeId}")
@@ -267,12 +336,95 @@ public class ScreenroomController {
         return result;
     }
 
+    @GetMapping("/reviews")
+    @Transactional(readOnly = true)
+    public Map<String, Object> reviews(@RequestParam(defaultValue = "latest") String sort,
+                                       @RequestParam(defaultValue = "") String keyword,
+                                       @RequestParam(defaultValue = "50") int limit,
+                                       HttpServletRequest request) {
+        int size = Math.max(1, Math.min(limit, 100));
+        User viewer = optionalUser(request);
+        String query = keyword == null ? "" : keyword.trim().toLowerCase();
+        List<Review> all = reviewRepository.findAll();
+        List<Review> filtered = all.stream().filter(item -> matchesReview(item, query)).collect(Collectors.toList());
+        List<Review> sorted = new ArrayList<>(filtered);
+        if ("score".equals(sort)) {
+            sorted.sort((left, right) -> {
+                int primary = Integer.compare(safeScore(right), safeScore(left));
+                return primary != 0 ? primary : compareCreated(right, left);
+            });
+        } else if ("hot".equals(sort)) {
+            sorted.sort((left, right) -> {
+                int primary = Integer.compare(safeLikes(right), safeLikes(left));
+                return primary != 0 ? primary : compareCreated(right, left);
+            });
+        } else {
+            sorted.sort((left, right) -> compareCreated(right, left));
+        }
+        List<ReviewResponse> list = sorted.stream().limit(size)
+                .map(item -> toReviewResponse(item, viewer)).collect(Collectors.toList());
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total", all.size());
+        stats.put("writers", all.stream().map(item -> item.user.id).distinct().count());
+        stats.put("likes", all.stream().mapToInt(this::safeLikes).sum());
+        stats.put("avgScore", all.isEmpty() ? 0 : roundScore(all.stream().mapToInt(this::safeScore).average().orElse(0)));
+        Map<String, Object> result = new HashMap<>();
+        result.put("reviews", list);
+        result.put("stats", stats);
+        result.put("writers", reviewWriters());
+        return result;
+    }
+
+    @PostMapping("/reviews")
+    @Transactional
+    public ReviewResponse createReview(@Valid @RequestBody ReviewRequest request, HttpServletRequest httpRequest) {
+        User user = currentUser(httpRequest);
+        Review review = new Review();
+        review.user = user;
+        review.anime = findAnime(request.animeId);
+        review.title = request.title.trim();
+        review.content = request.content.trim();
+        review.score = request.score;
+        review.likes = 0;
+        review.createdAt = Instant.now();
+        reviewRepository.save(review);
+        return toReviewResponse(review, user);
+    }
+
+    @PostMapping("/reviews/{reviewId}/like")
+    @Transactional
+    public Map<String, Object> likeReview(@PathVariable Long reviewId, HttpServletRequest request) {
+        User user = currentUser(request);
+        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("漫评不存在"));
+        Optional<ReviewLike> existing = reviewLikeRepository.findByUserIdAndReviewId(user.id, reviewId);
+        boolean liked;
+        if (existing.isPresent()) {
+            reviewLikeRepository.delete(existing.get());
+            liked = false;
+        } else {
+            ReviewLike like = new ReviewLike();
+            like.user = user;
+            like.review = review;
+            like.createdAt = Instant.now();
+            reviewLikeRepository.save(like);
+            liked = true;
+        }
+        int likes = Math.max(0, safeLikes(review) + (liked ? 1 : -1));
+        review.likes = likes;
+        reviewRepository.save(review);
+        Map<String, Object> result = new HashMap<>();
+        result.put("liked", liked);
+        result.put("likes", likes);
+        return result;
+    }
+
     @GetMapping("/community")
     @Transactional(readOnly = true)
-    public Map<String, Object> community(@RequestParam(defaultValue = "12") int limit) {
+    public Map<String, Object> community(@RequestParam(defaultValue = "12") int limit, HttpServletRequest request) {
         int size = Math.max(1, Math.min(limit, 50));
+        User viewer = optionalUser(request);
         List<CommentResponse> latest = commentRepository.findAllByOrderByCreatedAtDesc().stream()
-                .limit(size).map(item -> toCommentResponse(item, null)).collect(Collectors.toList());
+                .limit(size).map(item -> toCommentResponse(item, viewer)).collect(Collectors.toList());
         Map<Long, Long> counts = commentRepository.findAll().stream()
                 .collect(Collectors.groupingBy(item -> item.anime.id, Collectors.counting()));
         List<Map<String, Object>> hotAnime = counts.entrySet().stream()
@@ -285,9 +437,122 @@ public class ScreenroomController {
                     row.put("commentCount", entry.getValue());
                     return row;
                 }).orElse(null)).filter(Objects::nonNull).collect(Collectors.toList());
+        List<CommunityItem> topics = communityItemRepository.findByKindOrderByCreatedAtDesc(CommunityItemKind.TOPIC);
+        List<CommunityItem> groups = communityItemRepository.findByKindOrderByCreatedAtDesc(CommunityItemKind.GROUP);
+        List<CommunityItem> events = communityItemRepository.findByKindOrderByCreatedAtDesc(CommunityItemKind.EVENT);
+        List<Map<String, Object>> topicMaps = topics.stream().map(item -> toCommunityItemMap(item, viewer)).collect(Collectors.toList());
+        List<Map<String, Object>> groupMaps = groups.stream().map(item -> toCommunityItemMap(item, viewer)).collect(Collectors.toList());
+        List<Map<String, Object>> eventMaps = events.stream().map(item -> toCommunityItemMap(item, viewer)).collect(Collectors.toList());
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("topicCount", topics.size());
+        stats.put("groupCount", groups.size());
+        stats.put("eventCount", events.size());
+        stats.put("postCount", Math.toIntExact(topicPostRepository.count()));
+        stats.put("memberCount", Math.toIntExact(communityItemMemberRepository.count()));
+        stats.put("reviewCount", Math.toIntExact(reviewRepository.count()));
+        stats.put("writerCount", (int) reviewRepository.findAll().stream().map(item -> item.user.id).distinct().count());
         Map<String, Object> result = new HashMap<>();
         result.put("comments", latest);
         result.put("hotAnime", hotAnime);
+        result.put("topics", topicMaps);
+        result.put("groups", groupMaps);
+        result.put("events", eventMaps);
+        result.put("stats", stats);
+        result.put("writers", reviewWriters());
+        result.put("trendingTags", trendingTags(topics, groups));
+        return result;
+    }
+
+    @GetMapping("/community/topics/{itemId}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> topicDetail(@PathVariable Long itemId) {
+        return communityItemRepository.findById(itemId)
+                .filter(item -> item.kind == CommunityItemKind.TOPIC)
+                .map(item -> {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("topic", toCommunityItemMap(item, null));
+                    result.put("posts", topicPostRepository.findByItemIdOrderByCreatedAtAsc(itemId).stream()
+                            .map(this::toTopicPostMap).collect(Collectors.toList()));
+                    return ResponseEntity.ok(result);
+                })
+                .orElseGet(() -> ResponseEntity.status(404).body(Map.of("message", "话题不存在")));
+    }
+
+    @PostMapping("/community/topics")
+    @Transactional
+    public Map<String, Object> createTopic(@Valid @RequestBody TopicRequest request, HttpServletRequest httpRequest) {
+        User user = currentUser(httpRequest);
+        CommunityItem item = new CommunityItem();
+        item.kind = CommunityItemKind.TOPIC;
+        item.title = request.title.trim();
+        item.description = trimToNull(request.description);
+        item.tag = "新话题";
+        item.color = allowedColor(request.color);
+        item.baseCount = 0;
+        item.user = user;
+        item.createdAt = Instant.now();
+        communityItemRepository.save(item);
+        if (item.description != null) {
+            TopicPost post = new TopicPost();
+            post.item = item;
+            post.user = user;
+            post.content = item.description;
+            post.createdAt = Instant.now();
+            topicPostRepository.save(post);
+        }
+        return toCommunityItemMap(item, user);
+    }
+
+    @PostMapping("/community/topics/{itemId}/posts")
+    @Transactional
+    public Map<String, Object> createTopicPost(@PathVariable Long itemId, @Valid @RequestBody TopicPostRequest request,
+                                               HttpServletRequest httpRequest) {
+        User user = currentUser(httpRequest);
+        CommunityItem item = communityItemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("话题不存在"));
+        if (item.kind != CommunityItemKind.TOPIC) throw new IllegalArgumentException("内容不是话题");
+        TopicPost post = new TopicPost();
+        post.item = item;
+        post.user = user;
+        post.content = request.content.trim();
+        post.createdAt = Instant.now();
+        topicPostRepository.save(post);
+        return toTopicPostMap(post);
+    }
+
+    @PostMapping("/community/groups/{itemId}/join")
+    @Transactional
+    public Map<String, Object> toggleGroup(@PathVariable Long itemId, HttpServletRequest request) {
+        return toggleMembership(itemId, CommunityItemKind.GROUP, "joined", "memberCount", request);
+    }
+
+    @PostMapping("/community/events/{itemId}/signup")
+    @Transactional
+    public Map<String, Object> toggleEvent(@PathVariable Long itemId, HttpServletRequest request) {
+        return toggleMembership(itemId, CommunityItemKind.EVENT, "signedUp", "attendeeCount", request);
+    }
+
+    private Map<String, Object> toggleMembership(Long itemId, CommunityItemKind kind, String flagKey,
+                                                 String countKey, HttpServletRequest request) {
+        User user = currentUser(request);
+        CommunityItem item = communityItemRepository.findById(itemId).orElseThrow(() -> new IllegalArgumentException("内容不存在"));
+        if (item.kind != kind) throw new IllegalArgumentException("内容类型不匹配");
+        Optional<CommunityItemMember> existing = communityItemMemberRepository.findByUserIdAndItemId(user.id, itemId);
+        boolean joined;
+        if (existing.isPresent()) {
+            communityItemMemberRepository.delete(existing.get());
+            joined = false;
+        } else {
+            CommunityItemMember member = new CommunityItemMember();
+            member.user = user;
+            member.item = item;
+            member.createdAt = Instant.now();
+            communityItemMemberRepository.save(member);
+            joined = true;
+        }
+        int count = safeCount(item.baseCount) + communityItemMemberRepository.countByItemId(item.id);
+        Map<String, Object> result = new HashMap<>();
+        result.put(flagKey, joined);
+        result.put(countKey, count);
         return result;
     }
 
@@ -554,6 +819,128 @@ public class ScreenroomController {
                 item.anime.title, item.content, item.likes, liked, item.createdAt == null ? null : item.createdAt.toString());
     }
 
+    private ReviewResponse toReviewResponse(Review item, User viewer) {
+        Hibernate.initialize(item.user);
+        Hibernate.initialize(item.anime);
+        Hibernate.initialize(item.anime.genres);
+        boolean liked = viewer != null && reviewLikeRepository.findByUserIdAndReviewId(viewer.id, item.id).isPresent();
+        List<String> genres = item.anime.genres == null ? List.of()
+                : item.anime.genres.stream().map(genre -> genre.name).collect(Collectors.toList());
+        int readMinutes = Math.max(1, (item.content.length() + 250) / 300);
+        return new ReviewResponse(item.id, item.title, item.content, safeScore(item), safeLikes(item), liked,
+                item.createdAt == null ? null : item.createdAt.toString(), item.user.id, item.user.username,
+                nicknameOf(item.user), item.anime.id, item.anime.title, item.anime.coverUrl, genres, readMinutes);
+    }
+
+    private Map<String, Object> toCommunityItemMap(CommunityItem item, User viewer) {
+        if (item.user != null) Hibernate.initialize(item.user);
+        int realMembers = communityItemMemberRepository.countByItemId(item.id);
+        int realPosts = topicPostRepository.countByItemId(item.id);
+        boolean joined = viewer != null && communityItemMemberRepository.findByUserIdAndItemId(viewer.id, item.id).isPresent();
+        Map<String, Object> row = new HashMap<>();
+        row.put("id", item.id);
+        row.put("kind", item.kind.name());
+        row.put("title", item.title);
+        row.put("name", item.title);
+        row.put("description", item.description);
+        row.put("tag", item.tag);
+        row.put("color", allowedColor(item.color));
+        row.put("baseCount", safeCount(item.baseCount));
+        row.put("memberCount", safeCount(item.baseCount) + realMembers);
+        row.put("participantCount", safeCount(item.baseCount) + realPosts);
+        row.put("postCount", safeCount(item.baseCount) + realPosts);
+        row.put("attendeeCount", safeCount(item.baseCount) + realMembers);
+        row.put("joined", joined);
+        row.put("signedUp", joined);
+        row.put("author", nicknameOf(item.user));
+        row.put("createdAt", item.createdAt == null ? null : item.createdAt.toString());
+        return row;
+    }
+
+    private Map<String, Object> toTopicPostMap(TopicPost post) {
+        Hibernate.initialize(post.user);
+        Map<String, Object> row = new HashMap<>();
+        row.put("id", post.id);
+        row.put("author", nicknameOf(post.user));
+        row.put("content", post.content);
+        row.put("createdAt", post.createdAt == null ? null : post.createdAt.toString());
+        return row;
+    }
+
+    private List<Map<String, Object>> reviewWriters() {
+        Map<Long, List<Review>> byUser = reviewRepository.findAll().stream()
+                .collect(Collectors.groupingBy(item -> item.user.id));
+        return byUser.entrySet().stream().map(entry -> {
+            Review first = entry.getValue().get(0);
+            Map<String, Object> row = new HashMap<>();
+            row.put("nickname", nicknameOf(first.user));
+            row.put("count", entry.getValue().size());
+            row.put("likes", entry.getValue().stream().mapToInt(this::safeLikes).sum());
+            return row;
+        }).sorted((left, right) -> {
+            int byLikes = Integer.compare((Integer) right.get("likes"), (Integer) left.get("likes"));
+            return byLikes != 0 ? byLikes : Integer.compare((Integer) right.get("count"), (Integer) left.get("count"));
+        }).limit(5).collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> trendingTags(List<CommunityItem> topics, List<CommunityItem> groups) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (CommunityItem item : topics) addTags(counts, item.tag);
+        for (CommunityItem item : groups) addTags(counts, item.tag);
+        return counts.entrySet().stream()
+                .sorted((left, right) -> Integer.compare(right.getValue(), left.getValue()))
+                .limit(6).map(entry -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("name", entry.getKey());
+                    row.put("count", entry.getValue());
+                    return row;
+                }).collect(Collectors.toList());
+    }
+
+    private void addTags(Map<String, Integer> counts, String tag) {
+        if (tag == null || tag.trim().isEmpty()) return;
+        for (String part : tag.split("[/、,，]")) {
+            String value = part.trim();
+            if (!value.isEmpty()) counts.merge(value, 1, Integer::sum);
+        }
+    }
+
+    private String allowedColor(String value) {
+        if (value == null) return "pink";
+        String color = value.trim().toLowerCase();
+        return Set.of("pink", "blue", "black").contains(color) ? color : "pink";
+    }
+
+    private String nicknameOf(User user) {
+        if (user == null) return "放映室";
+        return user.nickname == null || user.nickname.isEmpty() ? user.username : user.nickname;
+    }
+
+    private int safeCount(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    private int safeScore(Review item) {
+        return item.score == null ? 0 : item.score;
+    }
+
+    private int safeLikes(Review item) {
+        return item.likes == null ? 0 : item.likes;
+    }
+
+    private int compareCreated(Review left, Review right) {
+        Instant a = left.createdAt == null ? Instant.EPOCH : left.createdAt;
+        Instant b = right.createdAt == null ? Instant.EPOCH : right.createdAt;
+        return a.compareTo(b);
+    }
+
+    private boolean matchesReview(Review item, String query) {
+        if (query.isEmpty()) return true;
+        String haystack = (item.title + " " + item.content + " " + item.anime.title + " "
+                + nicknameOf(item.user) + " " + item.user.username).toLowerCase();
+        return haystack.contains(query);
+    }
+
     private double roundScore(double value) {
         return Math.round(value * 10) / 10.0;
     }
@@ -579,6 +966,23 @@ public class ScreenroomController {
     }
 
     public static class CommentRequest {
+        @NotBlank public String content;
+    }
+
+    public static class ReviewRequest {
+        @NotNull public Long animeId;
+        @NotBlank public String title;
+        @NotBlank public String content;
+        @NotNull @Min(1) @Max(10) public Integer score;
+    }
+
+    public static class TopicRequest {
+        @NotBlank public String title;
+        public String description;
+        public String color;
+    }
+
+    public static class TopicPostRequest {
         @NotBlank public String content;
     }
 
@@ -692,6 +1096,44 @@ public class ScreenroomController {
             this.likes = likes;
             this.liked = liked;
             this.createdAt = createdAt;
+        }
+    }
+
+    public static class ReviewResponse {
+        public final Long id;
+        public final String title;
+        public final String content;
+        public final int score;
+        public final int likes;
+        public final boolean liked;
+        public final String createdAt;
+        public final Long userId;
+        public final String username;
+        public final String nickname;
+        public final Long animeId;
+        public final String animeTitle;
+        public final String animeCover;
+        public final List<String> genres;
+        public final int readMinutes;
+
+        public ReviewResponse(Long id, String title, String content, int score, int likes, boolean liked, String createdAt,
+                              Long userId, String username, String nickname, Long animeId, String animeTitle,
+                              String animeCover, List<String> genres, int readMinutes) {
+            this.id = id;
+            this.title = title;
+            this.content = content;
+            this.score = score;
+            this.likes = likes;
+            this.liked = liked;
+            this.createdAt = createdAt;
+            this.userId = userId;
+            this.username = username;
+            this.nickname = nickname;
+            this.animeId = animeId;
+            this.animeTitle = animeTitle;
+            this.animeCover = animeCover;
+            this.genres = genres;
+            this.readMinutes = readMinutes;
         }
     }
 

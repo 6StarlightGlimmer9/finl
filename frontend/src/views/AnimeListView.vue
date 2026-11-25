@@ -6,7 +6,7 @@ import { apiJson } from '../api'
 const keyword = ref('')
 const genre = ref('全部')
 const status = ref('全部')
-const sortBy = ref('score')
+const sortBy = ref('default')
 const filterOpen = ref(false)
 const mediaType = ref('ANIME')
 const shows = ref([])
@@ -29,7 +29,8 @@ const filteredShows = computed(() => {
   if (sortBy.value === 'title') return result.sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'))
   if (sortBy.value === 'count') return result.sort((a, b) => Number(b.scoreCount) - Number(a.scoreCount))
   if (sortBy.value === 'latest') return result.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
-  return result.sort((a, b) => Number(b.score) - Number(a.score))
+  if (sortBy.value === 'score') return result.sort((a, b) => Number(b.score) - Number(a.score))
+  return result
 })
 
 function statusLabel(value) {
@@ -39,7 +40,7 @@ function resetFilters() {
   keyword.value = ''
   genre.value = '全部'
   status.value = '全部'
-  sortBy.value = 'score'
+  sortBy.value = 'default'
   filterOpen.value = false
 }
 function syncMediaType() {
@@ -75,7 +76,7 @@ onUnmounted(() => window.removeEventListener('hashchange', syncMediaType))
   <section class="page-view wrap">
     <div class="page-intro"><div><span class="section-kicker">{{ category && !['番剧','电影'].includes(category) ? `CATEGORY / ${category}` : (mediaType === 'MOVIE' ? 'MOVIE INDEX / 2026' : 'ANIME INDEX / REAL RATINGS') }}</span><h1>{{ categoryTitle }}</h1><p>按真实用户评分整理片单，把值得看的故事慢慢逛完。</p></div><div class="index-stat"><b>{{ filteredShows.length || '—' }}</b><span>{{ mediaType === 'MOVIE' ? '部电影已收录' : '部番剧已收录' }}</span></div></div>
     <div class="filter-bar"><div class="page-search"><Search :size="17" /><input v-model="keyword" placeholder="搜索作品名称" /></div><div class="genre-filter"><button v-for="item in genres" :key="item" :class="{ selected: genre === item }" @click="genre = item">{{ item }}</button></div><button class="filter-button" @click="filterOpen = !filterOpen"><Filter :size="16" /> 筛选</button></div>
-    <div v-if="filterOpen" class="filter-panel"><label>播出状态<select v-model="status"><option>全部</option><option value="AIRING">连载中</option><option value="FINISHED">已完结</option><option value="UPCOMING">即将上映</option></select></label><label>排序方式<select v-model="sortBy"><option value="score">最高评分</option><option value="count">最多评分人数</option><option value="latest">最新收录</option><option value="title">作品名称</option></select></label><button @click="resetFilters">重置筛选</button></div>
+    <div v-if="filterOpen" class="filter-panel"><label>播出状态<select v-model="status"><option>全部</option><option value="AIRING">连载中</option><option value="FINISHED">已完结</option><option value="UPCOMING">即将上映</option></select></label><label>排序方式<select v-model="sortBy"><option value="default">默认（系列相邻）</option><option value="score">最高评分</option><option value="count">最多评分人数</option><option value="latest">最新收录</option><option value="title">作品名称</option></select></label><button @click="resetFilters">重置筛选</button></div>
     <p v-if="loading" class="catalog-state">正在读取片单...</p>
     <p v-else-if="loadError" class="catalog-state error">{{ loadError }}</p>
     <p v-else-if="!filteredShows.length" class="catalog-state">没有找到匹配的作品。</p>

@@ -175,7 +175,7 @@ onMounted(() => {
           <label>状态<select v-model="form.status"><option value="AIRING">连载中</option><option value="FINISHED">已完结</option><option value="UPCOMING">即将上映</option></select></label>
           <label class="full">简介<textarea v-model="form.summary" rows="3" placeholder="一句话介绍这部作品"></textarea></label>
           <label class="full">封面图片 URL<div class="cover-preview"><img v-if="form.coverUrl" :src="form.coverUrl" alt="封面预览" /><span v-else><ImageIcon :size="18" /> 填入图片地址后显示预览</span></div><input v-model="form.coverUrl" placeholder="https://..." /></label>
-          <label class="full">PV 地址<input v-model="form.pvUrl" placeholder="例如：/videos/9.mp4，把文件放到 frontend/public/videos/" /></label>
+          <label class="full">预览地址<input v-model="form.pvUrl" placeholder="Bilibili 视频 / 番剧链接或 BV 号，例如：https://www.bilibili.com/bangumi/play/ss102261" /></label>
           <label class="full">标签<input v-model="form.genres" placeholder="使用逗号或顿号分隔，例如：奇幻、战斗、热血" /></label>
           <div class="admin-form-actions"><button class="primary-button" :disabled="saving" @click="saveAnime"><Save :size="15" /> {{ saving ? '保存中...' : (form.id ? '保存修改' : '发布作品') }}</button><button class="ghost-button" @click="resetForm">清空</button></div>
         </div>

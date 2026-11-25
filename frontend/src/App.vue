@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { Bell, ChevronRight, Heart, LogIn, LogOut, Moon, Play, Search, ShieldCheck, Star, Sun, UserRound, X } from 'lucide-vue-next'
+import { Bell, ChevronRight, LogIn, LogOut, Moon, PenLine, Play, Search, ShieldCheck, Star, Sun, UserRound, Users, X } from 'lucide-vue-next'
 import AnimeDetailView from './views/AnimeDetailView.vue'
 import AnimeListView from './views/AnimeListView.vue'
 import CommunityView from './views/CommunityView.vue'
@@ -30,7 +30,14 @@ const homeAnime = ref([])
 const theme = ref(localStorage.getItem('screenroom-theme') || 'light')
 const toast = ref(null)
 let toastTimer = null
-const navItems = ['首页', '番剧', '电影', '漫评', '社群', '片单']
+const navItems = [
+  { label: '首页', featured: false },
+  { label: '番剧', featured: false },
+  { label: '电影', featured: false },
+  { label: '漫评', featured: true },
+  { label: '社群', featured: true },
+  { label: '片单', featured: false }
+]
 const categories = ['番剧', '电影', '奇幻', '战斗', '青春', '恋爱', '治愈', '热血', '科幻', '悬疑', '喜剧', '日常', '音乐', '运动']
 const featuredSlides = ref([])
 const featured = computed(() => featuredSlides.value[activeSlide.value] || null)
@@ -78,6 +85,10 @@ function syncPage() {
   const storedUser = getStoredUser()
   if (currentPage.value === '管理员后台' && storedUser?.role !== 'ADMIN') currentPage.value = '首页'
   if (['个人中心', '片单'].includes(currentPage.value) && !storedUser) currentPage.value = '首页'
+}
+function handleHashChange() {
+  syncPage()
+  window.scrollTo(0, 0)
 }
 async function loadHomeData() {
   try {
@@ -185,7 +196,7 @@ onMounted(async () => {
     } catch { /* apiFetch 已处理过期登录 */ }
   }
   loadHomeData()
-  window.addEventListener('hashchange', syncPage)
+  window.addEventListener('hashchange', handleHashChange)
   window.addEventListener('screenroom:auth-expired', handleAuthExpired)
   window.addEventListener('screenroom:login-required', handleLoginRequired)
   window.addEventListener('screenroom:toast', handleToast)
@@ -195,7 +206,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.clearInterval(carouselTimer)
   window.clearTimeout(toastTimer)
-  window.removeEventListener('hashchange', syncPage)
+  window.removeEventListener('hashchange', handleHashChange)
   window.removeEventListener('screenroom:auth-expired', handleAuthExpired)
   window.removeEventListener('screenroom:login-required', handleLoginRequired)
   window.removeEventListener('screenroom:toast', handleToast)
@@ -207,7 +218,7 @@ onUnmounted(() => {
   <div class="app-shell">
     <header class="topbar">
       <button class="brand" @click="navigate('首页')"><span class="brand-mark">✿</span><span>次元<span class="brand-dark">放映室</span></span></button>
-      <nav class="main-nav"><button v-for="item in navItems" :key="item" :class="{ active: currentPage === item }" @click="navigate(item)">{{ item }}</button></nav>
+      <nav class="main-nav"><button v-for="item in navItems" :key="item.label" :class="{ active: currentPage === item.label, featured: item.featured }" @click="navigate(item.label)">{{ item.label }}<em v-if="item.featured">主打</em></button></nav>
       <div class="search"><Search :size="18" /><input ref="searchInput" v-model="searchText" placeholder="搜索番剧、电影、漫评" @keyup.enter="submitSearch" /><kbd>⌘ K</kbd></div>
       <div class="header-actions">
         <button class="icon-button" :title="theme === 'dark' ? '切换浅色主题' : '切换深色主题'" @click="toggleTheme"><Sun v-if="theme === 'dark'" :size="18" /><Moon v-else :size="18" /></button>
@@ -259,6 +270,25 @@ onUnmounted(() => {
           <button class="text-link" @click="navigate('社群')">进入同好社群 <ChevronRight :size="15" /></button>
         </aside>
       </section>
+      <section class="signature-section wrap">
+        <div class="section-heading"><div><span class="section-kicker">WHAT MAKES US DIFFERENT</span><h2>不只是看番，更要认真聊</h2></div><span class="side-empty">本站两大主打页面</span></div>
+        <div class="signature-grid">
+          <button class="signature-card reviews-card" @click="navigate('漫评')">
+            <span class="signature-icon"><PenLine :size="22" /></span>
+            <span class="section-kicker">EDITORIAL</span>
+            <h3>漫评</h3>
+            <p>长评、打分、写作榜与真实点赞。把看完之后仍然留下的感受，写成一篇能被读完的文章。</p>
+            <span class="signature-link">进入漫评 <ChevronRight :size="16" /></span>
+          </button>
+          <button class="signature-card community-card" @click="navigate('社群')">
+            <span class="signature-icon"><Users :size="22" /></span>
+            <span class="section-kicker">COMMUNITY</span>
+            <h3>社群</h3>
+            <p>话题广场、兴趣小组、放映会报名与全站真实评论，让每一次观看之后都能继续发生交流。</p>
+            <span class="signature-link">进入社群 <ChevronRight :size="16" /></span>
+          </button>
+        </div>
+      </section>
       <section class="content wrap">
         <div class="section-heading"><div><span class="section-kicker">RECOMMENDED</span><h2>为你推荐</h2></div><button class="more-link" @click="navigate('番剧')">查看更多 <ChevronRight :size="16" /></button></div>
         <div class="video-grid"><article v-for="(video, index) in videos" :key="`${video.title}-${index}`" class="video-card reveal-up" :class="{ 'delay-1': index % 3 === 1, 'delay-2': index % 3 === 2 }" @click="openDetail(video.id)"><div class="video-cover"><img :src="video.image" :alt="video.title" /><span class="duration">番剧推荐</span><button class="play-button"><Play :size="17" fill="currentColor" /></button></div><h3>{{ video.title }}</h3><p>{{ video.meta }}</p></article></div>
@@ -271,7 +301,7 @@ onUnmounted(() => {
         <div class="section-heading"><div><span class="section-kicker">VISUAL INDEX</span><h2>本周海报墙</h2></div><button class="more-link" @click="navigate('番剧')">进入番剧库 <ChevronRight :size="16" /></button></div>
         <div class="poster-grid"><article v-for="(poster, index) in posters" :key="poster.title" class="poster-card reveal-up" :class="{ 'delay-1': index % 2 === 1 }" @click="openDetail(poster.id)"><img :src="poster.image" :alt="poster.title" /><div><span>{{ poster.label }}</span><h3>{{ poster.title }}</h3></div></article></div>
       </section>
-      <section class="topic-strip wrap"><div><span class="section-kicker">WATCHING TOGETHER</span><h2>正在放映的故事，也正在被讨论</h2><p>去详情页查看 PV、评分分布和真实评论。</p></div><div class="topic-actions"><button @click="openDetail(1)"><Star :size="16" /> 评分热榜</button><button @click="navigate('漫评')"><Heart :size="16" /> 精选漫评</button></div></section>
+      <section class="topic-strip wrap"><div><span class="section-kicker">WATCHING TOGETHER</span><h2>正在放映的故事，也正在被讨论</h2><p>去漫评里读长评，去社群里找同好，让观看之后的讨论继续发生。</p></div><div class="topic-actions"><button @click="navigate('漫评')"><PenLine :size="16" /> 精选漫评</button><button @click="navigate('社群')"><Users :size="16" /> 进入社群</button></div></section>
     </main>
     <main v-else>
       <AnimeListView v-if="currentPage === '番剧' || currentPage === '电影'" />

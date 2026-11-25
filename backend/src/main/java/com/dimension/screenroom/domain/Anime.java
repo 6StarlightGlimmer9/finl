@@ -20,6 +20,7 @@ public class Anime {
     @Enumerated(EnumType.STRING) @Column(nullable = false, columnDefinition = "enum('AIRING','FINISHED','UPCOMING')") public AnimeStatus status;
     @Column(nullable = false, precision = 3, scale = 1) public BigDecimal score = BigDecimal.ZERO;
     @Column(nullable = false) public Integer scoreCount = 0;
+    @Column(name = "sort_order", nullable = false) public Integer sortOrder = 0;
     @ManyToMany
     @JoinTable(name = "anime_genres", joinColumns = @JoinColumn(name = "anime_id"), inverseJoinColumns = @JoinColumn(name = "genre_id"))
     public java.util.Set<Genre> genres = new java.util.HashSet<>();

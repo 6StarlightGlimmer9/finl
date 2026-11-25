@@ -8,5 +8,6 @@ import './admin-search.css'
 import './enhancements.css'
 import './theme.css'
 import './visual-polish.css'
+import './social.css'
 
 createApp(App).mount('#app')

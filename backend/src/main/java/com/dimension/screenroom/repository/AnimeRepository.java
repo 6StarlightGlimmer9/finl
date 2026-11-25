@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface AnimeRepository extends JpaRepository<Anime, Long> {
 	List<Anime> findAllByOrderByScoreDesc();
-	@Query("select a from Anime a where lower(a.title) like lower(concat('%', :keyword, '%')) or lower(a.originalTitle) like lower(concat('%', :keyword, '%'))")
+	List<Anime> findAllByOrderBySortOrderAscScoreDesc();
+	@Query("select a from Anime a where lower(a.title) like lower(concat('%', :keyword, '%')) or lower(a.originalTitle) like lower(concat('%', :keyword, '%')) order by a.sortOrder asc")
 	List<Anime> search(@Param("keyword") String keyword);
 }

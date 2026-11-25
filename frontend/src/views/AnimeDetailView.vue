@@ -15,7 +15,6 @@ const activeTab = ref('synopsis')
 const submitting = ref(false)
 const watchStatus = ref('')
 const pvOpen = ref(false)
-const pvFailed = ref(false)
 const user = ref(null)
 const ratingSummary = ref({ score: 0, count: 0, distribution: new Array(10).fill(0), myRating: null })
 function currentAnimeId() {
@@ -30,6 +29,39 @@ function formatDate(value) {
   return value ? String(value).replace('T', ' ').slice(0, 16) : ''
 }
 
+const bilibiliPv = ref(null)
+
+function bilibiliInfo(value) {
+  const text = String(value || '').trim()
+  if (!text) return null
+  const bv = text.match(/BV[0-9A-Za-z]{10}/)
+  if (bv) {
+    return {
+      embed: `https://player.bilibili.com/player.html?bvid=${bv[0]}&page=1&high_quality=1&danmaku=0`,
+      web: `https://www.bilibili.com/video/${bv[0]}`
+    }
+  }
+  const av = text.match(/(?:^|\/)av(\d{4,})/i)
+  if (av) {
+    return {
+      embed: `https://player.bilibili.com/player.html?aid=${av[1]}&page=1&high_quality=1&danmaku=0`,
+      web: `https://www.bilibili.com/video/av${av[1]}`
+    }
+  }
+  return null
+}
+
+async function resolveBilibiliPreview(value) {
+  bilibiliPv.value = bilibiliInfo(value)
+  const text = String(value || '')
+  if (bilibiliPv.value || !/bilibili\.com\/bangumi\/play\/(?:ss|ep)\d+/.test(text)) return
+  try {
+    bilibiliPv.value = await apiJson(`/api/bilibili/resolve?url=${encodeURIComponent(text)}`)
+  } catch {
+    bilibiliPv.value = null
+  }
+}
+
 function requireLogin(message) {
   if (getStoredUser()) return true
   window.dispatchEvent(new CustomEvent('screenroom:login-required', { detail: { message } }))
@@ -41,9 +73,9 @@ function selectRating(value) {
   rating.value = value
 }
 
-function openPv() {
+async function openPv() {
   if (!anime.value) return
-  pvFailed.value = false
+  if (!bilibiliPv.value && anime.value.pvUrl) await resolveBilibiliPreview(anime.value.pvUrl)
   pvOpen.value = true
 }
 
@@ -113,11 +145,13 @@ async function loadDetail() {
       apiJson(`/api/anime/${id}/comments`)
     ])
     anime.value = detail
+    await resolveBilibiliPreview(detail.pvUrl)
     ratingSummary.value = summary
     comments.value = commentList
     if (summary.myRating) rating.value = Math.round(summary.myRating / 2)
   } catch (error) {
     anime.value = null
+    bilibiliPv.value = null
     comments.value = []
     notice.value = error.message
   } finally {
@@ -210,13 +244,13 @@ onMounted(async () => {
           <p class="original-title">{{ anime.originalTitle || anime.season }}</p>
           <p>{{ anime.summary || '这部作品还没有填写简介，管理员可在后台补充。' }}</p>
           <div class="detail-tags"><span v-for="genre in anime.genres" :key="genre">{{ genre }}</span></div>
-          <div class="detail-actions"><button class="primary-button" @click="openPv"><Play :size="16" fill="currentColor" /> 播放 PV</button><div class="watch-quick"><Heart :size="15" /><button v-for="option in watchOptions" :key="option.value" :class="{ active: watchStatus === option.value }" @click="saveWatch(option.value)">{{ option.label }}</button></div></div>
+          <div class="detail-actions"><button class="primary-button" @click="openPv"><Play :size="16" fill="currentColor" /> 查看预览</button><div class="watch-quick"><Heart :size="15" /><button v-for="option in watchOptions" :key="option.value" :class="{ active: watchStatus === option.value }" @click="saveWatch(option.value)">{{ option.label }}</button></div></div>
         </div>
         <div class="detail-score score-pop"><span>社区真实评分</span><b>{{ Number(ratingSummary.score).toFixed(1) }}</b><div><Star v-for="item in 5" :key="item" :size="16" fill="currentColor" /></div><small>{{ Number(ratingSummary.count).toLocaleString() }} 人评分</small></div>
       </div>
       <div class="detail-content">
         <div>
-          <div class="video-frame detail-video"><div class="video-overlay"><button class="big-play" @click="openPv"><Play :size="27" fill="currentColor" /></button><span>点击播放 PV 预告</span></div><img :src="anime.coverUrl" :alt="`${anime.title} PV 预告`" /></div>
+          <div class="video-frame detail-video"><div class="video-overlay"><button class="big-play" @click="openPv"><Play :size="27" fill="currentColor" /></button><span>点击查看预览</span></div><img :src="anime.coverUrl" :alt="`${anime.title} 预览`" /></div>
           <div class="detail-tabs">
             <button :class="{ active: activeTab === 'synopsis' }" @click="activeTab = 'synopsis'">剧情简介</button>
             <button :class="{ active: activeTab === 'broadcast' }" @click="activeTab = 'broadcast'">播出信息</button>
@@ -270,15 +304,16 @@ onMounted(async () => {
     <div v-if="pvOpen && anime" class="modal-backdrop" @click.self="pvOpen = false">
       <div class="pv-modal">
         <button class="close-button" @click="pvOpen = false"><X :size="18" /></button>
-        <span class="section-kicker">PV PREVIEW / 16:9</span>
+        <span class="section-kicker">BILIBILI PREVIEW / 16:9</span>
         <h2>{{ anime.title }}</h2>
         <div class="pv-screen">
-          <video v-if="anime.pvUrl && !pvFailed" controls autoplay :src="anime.pvUrl" @error="pvFailed = true"></video>
+          <iframe v-if="bilibiliPv" class="pv-iframe" :src="bilibiliPv.embed" scrolling="no" frameborder="0" allow="autoplay; fullscreen" referrerpolicy="no-referrer" allowfullscreen></iframe>
           <template v-else>
-            <img :src="anime.coverUrl" :alt="`${anime.title} PV 预览`" />
-            <div class="pv-placeholder"><Play :size="34" fill="currentColor" /><b>预告片待上架</b><span>将 MP4 放到 frontend/public/videos/{{ anime.id }}.mp4 即可播放</span></div>
+            <img :src="anime.coverUrl" :alt="`${anime.title} 预览`" />
+            <div class="pv-placeholder"><Play :size="34" fill="currentColor" /><b>暂无 Bilibili 预览</b><span>该作品的 Bilibili 资源暂时不可用</span></div>
           </template>
         </div>
+        <a v-if="bilibiliPv" class="pv-open-link" :href="bilibiliPv.web" target="_blank" rel="noopener">在 Bilibili 打开原视频 →</a>
       </div>
     </div>
   </section>
