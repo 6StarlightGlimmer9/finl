@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByAnimeIdOrderByCreatedAtDesc(Long animeId);
+    List<Comment> findByUserIdOrderByCreatedAtDesc(Long userId);
     List<Comment> findAllByOrderByCreatedAtDesc();
     List<Comment> findByContentContainingIgnoreCase(String keyword);
 }

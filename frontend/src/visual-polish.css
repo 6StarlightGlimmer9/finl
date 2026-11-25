@@ -534,8 +534,19 @@ body {
 .watch-tabs button { box-shadow: var(--shadow-sm); }
 .profile-banner { border-radius: var(--radius-lg); background: linear-gradient(120deg, #1d1721 0%, #38202c 100%); box-shadow: var(--shadow-md); }
 .profile-avatar { box-shadow: 0 0 0 6px rgba(242, 92, 134, .18); }
+.profile-joined { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255, 255, 255, .12); color: #f4dce4; font-size: 11px; }
 .profile-stats { border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
 .profile-side { border: 1px solid var(--line); padding: 24px; }
+.profile-side em { color: var(--muted); font-size: 11px; font-style: normal; }
+.profile-main .subheading:not(:first-child) { margin-top: 30px; }
+.profile-comment { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); padding: 16px 18px; margin-bottom: 12px; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.profile-comment:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: #f2b9ca; }
+.profile-comment-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.profile-comment-head b { font-size: 13px; }
+.profile-comment-head span { color: var(--muted); font-size: 11px; }
+.profile-comment p { color: var(--muted); font-size: 12px; line-height: 1.8; margin: 0 0 8px; }
+.profile-comment small { display: inline-flex; align-items: center; gap: 5px; color: var(--pink); font-size: 11px; }
+.watching-item .watch-status { color: var(--pink); display: inline-flex; align-items: center; gap: 4px; }
 
 /* 管理后台 */
 .admin-heading { padding-bottom: 24px; }

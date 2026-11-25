@@ -92,21 +92,27 @@ public class ScreenroomController {
     public Map<String, Object> profile(HttpServletRequest request) {
         User user = currentUser(request);
         Map<String, Object> result = new HashMap<>(userView(user));
-        List<Map<String, Object>> ratings = ratingRepository.findAll().stream()
-                .filter(item -> item.user.id.equals(user.id))
+        List<Map<String, Object>> ratings = ratingRepository.findProfileRatings(user.id).stream()
                 .map(item -> {
                     Map<String, Object> row = new HashMap<>();
                     row.put("animeId", item.anime.id);
                     row.put("title", item.anime.title);
                     row.put("coverUrl", item.anime.coverUrl);
                     row.put("score", item.score);
+                    row.put("mediaType", item.anime.mediaType.name());
+                    row.put("createdAt", item.createdAt == null ? null : item.createdAt.toString());
                     return row;
                 }).collect(Collectors.toList());
-        long commentCount = commentRepository.findAll().stream().filter(item -> item.user.id.equals(user.id)).count();
+        List<CommentResponse> comments = commentRepository.findByUserIdOrderByCreatedAtDesc(user.id).stream()
+                .map(item -> toCommentResponse(item, user)).collect(Collectors.toList());
+        List<WatchlistResponse> watchlist = watchlistRepository.findByUserIdOrderByUpdatedAtDesc(user.id).stream()
+                .map(this::toWatchlistResponse).collect(Collectors.toList());
         result.put("ratingCount", ratings.size());
-        result.put("commentCount", commentCount);
-        result.put("watchlistCount", watchlistRepository.findByUserIdOrderByUpdatedAtDesc(user.id).size());
+        result.put("commentCount", comments.size());
+        result.put("watchlistCount", watchlist.size());
         result.put("ratings", ratings);
+        result.put("comments", comments);
+        result.put("watchlist", watchlist);
         return result;
     }
 
