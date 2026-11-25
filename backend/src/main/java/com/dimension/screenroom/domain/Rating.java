@@ -1,6 +1,7 @@
 package com.dimension.screenroom.domain;
 
 import javax.persistence.*;
+import java.time.Instant;
 
 @Entity
 @Table(name = "ratings", uniqueConstraints = @UniqueConstraint(name = "uk_user_anime_rating", columnNames = {"user_id", "anime_id"}))
@@ -9,4 +10,5 @@ public class Rating {
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "user_id", nullable = false) public User user;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "anime_id", nullable = false) public Anime anime;
     @Column(nullable = false, columnDefinition = "tinyint") public Integer score;
+    @Column(name = "created_at") public Instant createdAt;
 }

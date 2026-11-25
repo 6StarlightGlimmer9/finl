@@ -5,5 +5,8 @@ import './catalog-tags.css'
 import './account.css'
 import './carousel.css'
 import './admin-search.css'
+import './enhancements.css'
+import './theme.css'
+import './visual-polish.css'
 
 createApp(App).mount('#app')

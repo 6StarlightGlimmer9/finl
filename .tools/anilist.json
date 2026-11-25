@@ -1,0 +1,1 @@
+{"query":"query($s:String){Media(search:$s,type:ANIME){id title{romaji english native} coverImage{extraLarge large}}}","variables":{"s":"THE FIRST SLAM DUNK"}}
