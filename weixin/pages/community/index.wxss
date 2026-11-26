@@ -1,0 +1,37 @@
+.stats-title { font-size: 38rpx; font-weight: 900; margin: 10rpx 0 26rpx; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+.stats-num { display: block; font-size: 36rpx; font-weight: 800; color: #ff9ec0; }
+.stats-label { display: block; font-size: 20rpx; color: #b6aeb6; margin-top: 4rpx; }
+.community-tabs { margin-top: 28rpx; }
+.section-inline { margin: 20rpx 0; }
+.section-inline .section-title, .tags-card .section-title { font-size: 32rpx; font-weight: 800; margin-bottom: 16rpx; }
+
+.topic-card { display: flex; align-items: flex-start; margin-bottom: 16rpx; padding: 22rpx; }
+.topic-dot { width: 20rpx; height: 20rpx; flex: none; border-radius: 50%; background: #f25c86; margin: 12rpx 18rpx 0 0; }
+.topic-card.topic-blue .topic-dot { background: #4880a6; }
+.topic-card.topic-black .topic-dot { background: #17151a; }
+.topic-title { font-size: 29rpx; font-weight: 700; }
+.topic-desc { font-size: 24rpx; color: #817b83; line-height: 1.6; margin: 8rpx 0; }
+.topic-meta { font-size: 21rpx; color: #a19aa2; }
+.topic-arrow { font-size: 40rpx; color: #c8c0ca; margin-left: 12rpx; align-self: center; }
+
+.group-card, .event-card { display: flex; align-items: center; margin-bottom: 16rpx; padding: 22rpx; }
+.group-symbol, .event-badge { width: 68rpx; height: 68rpx; flex: none; border-radius: 14rpx; background: #fff0f4; color: #c04c70; display: flex; align-items: center; justify-content: center; font-size: 26rpx; font-weight: 800; margin-right: 18rpx; }
+.event-badge { background: #17151a; color: #ff9ec0; font-size: 22rpx; }
+.group-join { flex: none; font-size: 22rpx; color: #f25c86; border: 1rpx solid #f7c3d3; border-radius: 8rpx; padding: 10rpx 20rpx; margin-left: 12rpx; }
+.group-join.joined { color: #817b83; border-color: #e9e4e5; background: #f8f6f4; }
+
+.community-comment { padding: 22rpx; margin-bottom: 16rpx; }
+.comment-head { margin-left: 16rpx; }
+.comment-name { font-size: 26rpx; font-weight: 600; }
+.comment-content { font-size: 26rpx; color: #55505a; line-height: 1.7; margin: 14rpx 0; }
+.comment-anime { font-size: 22rpx; color: #f25c86; }
+.like-button { font-size: 22rpx; color: #817b83; background: #f8f6f4; border-radius: 999rpx; padding: 8rpx 20rpx; }
+.like-button.liked { color: #f25c86; background: #fff0f4; }
+
+.hot-scroll { width: 100%; white-space: nowrap; }
+.hot-inner { display: inline-flex; }
+.hot-item { width: 200rpx; margin-right: 18rpx; }
+.hot-item image { width: 200rpx; height: 260rpx; border-radius: 12rpx; background: #2a2028; display: block; }
+.hot-title { font-size: 25rpx; font-weight: 600; margin-top: 8rpx; }
+.tags-card { margin-top: 30rpx; }

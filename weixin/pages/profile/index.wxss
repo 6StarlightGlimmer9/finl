@@ -1,0 +1,28 @@
+.profile-hero { display: flex; align-items: center; }
+.profile-avatar { width: 100rpx; height: 100rpx; font-size: 40rpx; background: #f25c86; }
+.profile-copy { margin-left: 24rpx; }
+.profile-name { font-size: 36rpx; font-weight: 900; }
+.profile-meta { font-size: 22rpx; color: #b6aeb6; margin-top: 6rpx; }
+.admin-badge { display: inline-block; background: #ff9ec0; color: #24171c; border-radius: 6rpx; padding: 2rpx 10rpx; margin-left: 10rpx; font-size: 20rpx; }
+
+.profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; margin-top: 20rpx; padding: 26rpx 0; }
+.stat-num { display: block; font-size: 38rpx; font-weight: 800; color: #f25c86; }
+.stat-label { display: block; font-size: 21rpx; color: #817b83; margin-top: 4rpx; }
+
+.quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16rpx; margin-top: 24rpx; }
+.quick-item { background: #fff; border: 1rpx solid #e9e4e5; border-radius: 14rpx; padding: 20rpx 0; display: flex; flex-direction: column; align-items: center; font-size: 22rpx; }
+.quick-icon { width: 64rpx; height: 64rpx; border-radius: 50%; background: #fff0f4; color: #c04c70; font-size: 26rpx; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 10rpx; }
+
+.record-tabs { margin-top: 36rpx; }
+.record-row { display: flex; align-items: center; padding: 18rpx; margin-bottom: 16rpx; }
+.record-cover { width: 88rpx; height: 120rpx; flex: none; border-radius: 8rpx; background: #2a2028; margin-right: 18rpx; }
+.record-title { font-size: 27rpx; font-weight: 600; }
+.record-score { flex: none; font-size: 30rpx; margin-left: 12rpx; }
+.record-comment { padding: 22rpx; margin-bottom: 16rpx; }
+.record-comment .record-title { font-size: 26rpx; font-weight: 400; color: #55505a; line-height: 1.7; margin-bottom: 10rpx; }
+
+.settings-card { margin-top: 36rpx; padding: 0 24rpx; }
+.settings-row { display: flex; align-items: center; padding: 26rpx 0; border-bottom: 1rpx solid #f1edee; font-size: 27rpx; }
+.settings-row:last-child { border-bottom: 0; }
+.settings-arrow { color: #c8c0ca; margin-left: 16rpx; }
+.logout-text { color: #d94f6d; }

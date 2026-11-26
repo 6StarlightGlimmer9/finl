@@ -1,0 +1,51 @@
+<import src="/templates/cards.wxml" />
+
+<view class="page">
+  <view class="search-bar">
+    <input class="search-input" placeholder="搜索作品、评论内容" value="{{keyword}}" bindinput="onInput" bindconfirm="doSearch" confirm-type="search" focus="{{!searched}}" />
+    <view wx:if="{{keyword}}" class="search-clear" bindtap="clearKeyword">清空</view>
+    <view class="search-submit" bindtap="doSearch">搜索</view>
+  </view>
+
+  <view wx:if="{{!searched}}" class="search-intro">
+    <view class="filter-label">大家都在搜</view>
+    <view class="chip-row">
+      <view wx:for="{{hotWords}}" wx:key="*this" class="chip" data-value="{{item}}" bindtap="tapWord">{{item}}</view>
+    </view>
+    <view wx:if="{{history.length}}" class="row-between history-head">
+      <view class="filter-label">搜索历史</view>
+      <view class="history-clear" bindtap="clearHistory">清除</view>
+    </view>
+    <view class="chip-row">
+      <view wx:for="{{history}}" wx:key="*this" class="chip" data-value="{{item}}" bindtap="tapWord">{{item}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">正在检索放映室…</view>
+
+  <block wx:if="{{searched && !loading}}">
+    <view class="result-head" wx:if="{{anime.length}}">
+      <view class="section-title">相关作品</view><text class="sub">{{anime.length}} 部</text>
+    </view>
+    <view class="poster-grid" wx:if="{{anime.length}}">
+      <block wx:for="{{anime}}" wx:key="id">
+        <template is="poster-card" data="{{item: item}}" />
+      </block>
+    </view>
+
+    <view class="result-head" wx:if="{{comments.length}}">
+      <view class="section-title">相关短评</view><text class="sub">{{comments.length}} 条</text>
+    </view>
+    <view class="card result-comment" wx:for="{{comments}}" wx:key="id">
+      <view class="row">
+        <view class="avatar pink">{{item.initial}}</view>
+        <view class="flex-1 result-author">{{item.nickname}}</view>
+        <text class="sub">{{item.time}}</text>
+      </view>
+      <view class="result-text">{{item.content}}</view>
+      <view class="result-anime" bindtap="openDetail" data-id="{{item.animeId}}">《{{item.animeTitle}}》›</view>
+    </view>
+
+    <view wx:if="{{!anime.length && !comments.length}}" class="empty">没有找到「{{keyword}}」相关内容，换个关键词试试</view>
+  </block>
+</view>

@@ -1,0 +1,119 @@
+<import src="/templates/cards.wxml" />
+
+<view class="page">
+  <view class="brand-bar">
+    <view class="brand"><text class="brand-mark">◈</text>次元<text class="brand-accent">放映室</text></view>
+    <view class="brand-search" bindtap="goSearch">搜索番剧、漫评与同好</view>
+  </view>
+
+  <view wx:if="{{error}}" class="error-card">
+    <view class="error-head">
+      <view class="error-icon">!</view>
+      <view class="flex-1">
+        <view class="error-title">内容加载失败</view>
+        <view class="error-message">{{error}}</view>
+      </view>
+    </view>
+    <view class="error-actions">
+      <view class="btn-ghost btn-small" bindtap="loadAll">重新加载</view>
+      <view class="btn-primary btn-small" bindtap="openServer">连接设置</view>
+    </view>
+  </view>
+  <view wx:if="{{loading && !slides.length}}" class="loading">正在放映…</view>
+
+  <swiper wx:if="{{slides.length}}" class="hero-swiper" indicator-dots="true" indicator-color="rgba(255,255,255,.45)" indicator-active-color="#f25c86" autoplay="true" circular="true" interval="5000" duration="400">
+    <swiper-item wx:for="{{slides}}" wx:key="id">
+      <view class="slide" bindtap="openDetail" data-id="{{item.id}}">
+        <image class="slide-bg" src="{{item.cover}}" mode="aspectFill" />
+        <view class="slide-shade"></view>
+        <view class="slide-copy">
+          <view class="slide-label">{{item.label}}</view>
+          <view class="slide-title">{{item.title}}</view>
+          <view class="slide-desc clamp-2">{{item.desc}}</view>
+          <view class="slide-meta">★ {{item.scoreText}} · {{item.scoreCount}} 人真实评分</view>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view class="entry-grid">
+    <view class="entry" hover-class="tap-hover" bindtap="goCatalog" data-type="ANIME" data-category="全部"><view class="entry-icon">番</view><text>番剧库</text></view>
+    <view class="entry" hover-class="tap-hover" bindtap="goCatalog" data-type="MOVIE" data-category="全部"><view class="entry-icon">影</view><text>剧场版</text></view>
+    <view class="entry" hover-class="tap-hover" bindtap="goTab" data-url="/pages/reviews/index"><view class="entry-icon">评</view><text>写漫评</text></view>
+    <view class="entry" hover-class="tap-hover" bindtap="goTab" data-url="/pages/community/index"><view class="entry-icon">群</view><text>同好社群</text></view>
+    <view class="entry" hover-class="tap-hover" bindtap="goSearch"><view class="entry-icon">搜</view><text>全站搜索</text></view>
+    <view class="entry" hover-class="tap-hover" bindtap="goWatchlist"><view class="entry-icon">单</view><text>我的片单</text></view>
+  </view>
+
+  <view class="section" wx:if="{{featured.length}}">
+    <view class="section-head">
+      <view><view class="eyebrow">FEATURED</view><view class="section-title">本周放映</view></view>
+      <view class="section-more" bindtap="goCatalog" data-type="ALL" data-category="全部">查看全部 ›</view>
+    </view>
+    <scroll-view scroll-x="true" class="poster-strip">
+      <view class="poster-strip-inner">
+        <block wx:for="{{featured}}" wx:key="id">
+          <template is="poster-card" data="{{item: item}}" />
+        </block>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="section" wx:if="{{topList.length}}">
+    <view class="section-head">
+      <view><view class="eyebrow">REAL RATING</view><view class="section-title">真实评分 TOP 5</view></view>
+      <view class="section-more" bindtap="goCatalog" data-type="ALL" data-category="全部">更多 ›</view>
+    </view>
+    <view class="card rank-card">
+      <view class="rank-row" wx:for="{{topList}}" wx:key="id" bindtap="openDetail" data-id="{{item.id}}">
+        <text class="rank-no">{{item.rank}}</text>
+        <image class="rank-cover" src="{{item.cover}}" mode="aspectFill" lazy-load="true" />
+        <view class="rank-body">
+          <view class="rank-title ellipsis">{{item.title}}</view>
+          <view class="rank-meta ellipsis">{{item.meta}}</view>
+        </view>
+        <text class="rank-score">{{item.scoreText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{reviews.length}}">
+    <view class="section-head">
+      <view><view class="eyebrow">LONG REVIEWS</view><view class="section-title">最新漫评</view></view>
+      <view class="section-more" bindtap="goTab" data-url="/pages/reviews/index">全部漫评 ›</view>
+    </view>
+    <view class="card review-mini" wx:for="{{reviews}}" wx:key="id" bindtap="goTab" data-url="/pages/reviews/index">
+      <view class="row">
+        <view class="avatar pink">{{item.initial}}</view>
+        <view class="review-mini-author">{{item.nickname}}</view>
+        <text class="review-mini-score score">★ {{item.scoreText}}</text>
+      </view>
+      <view class="review-mini-title">{{item.title}}</view>
+      <view class="review-mini-excerpt clamp-2">{{item.excerpt}}</view>
+      <view class="review-mini-foot">{{item.animeTitle}} · {{item.time}}</view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{comments.length}}">
+    <view class="section-head">
+      <view><view class="eyebrow">COMMUNITY</view><view class="section-title">同好在聊</view></view>
+      <view class="section-more" bindtap="goTab" data-url="/pages/community/index">进入社群 ›</view>
+    </view>
+    <view class="card">
+      <view class="comment-mini" wx:for="{{comments}}" wx:key="id">
+        <view class="avatar">{{item.initial}}</view>
+        <view class="flex-1">
+          <view class="row-between"><text class="comment-mini-name">{{item.nickname}}</text><text class="sub">{{item.time}}</text></view>
+          <view class="comment-mini-text clamp-2">{{item.content}}</view>
+          <view class="comment-mini-anime">《{{item.animeTitle}}》</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="home-foot" wx:if="{{stats}}">
+    <text>{{stats.postCount}} 条话题回复</text>
+    <text>{{stats.reviewCount}} 篇长评</text>
+    <text>{{stats.memberCount}} 次社群参与</text>
+  </view>
+</view>

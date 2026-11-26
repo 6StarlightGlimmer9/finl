@@ -1,0 +1,39 @@
+<import src="/templates/cards.wxml" />
+
+<view class="page">
+  <view class="watch-head">
+    <view><view class="eyebrow">MY WATCHLIST</view><view class="section-title">我的片单</view></view>
+    <view class="sub">{{list.length}} 部作品</view>
+  </view>
+
+  <view wx:if="{{!loggedIn}}" class="empty">
+    <view>登录后可管理想看 / 在看 / 看过</view>
+    <view class="btn-primary btn-small empty-cta" bindtap="goLogin">去登录</view>
+  </view>
+
+  <block wx:if="{{loggedIn}}">
+    <view class="chip-row">
+      <view wx:for="{{filters}}" wx:key="value" class="chip pink {{statusFilter === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onFilter">{{item.label}}</view>
+    </view>
+
+    <view wx:if="{{error}}" class="empty">
+      <view>{{error}}</view>
+      <view class="btn-ghost btn-small empty-cta" bindtap="load">重新加载</view>
+    </view>
+    <view wx:if="{{loading}}" class="loading">片单整理中…</view>
+    <view wx:if="{{!loading && !filtered.length}}" class="empty">
+      <view>这个状态下还没有作品</view>
+      <view class="btn-ghost btn-small empty-cta" bindtap="goCatalog">去逛片库</view>
+    </view>
+
+    <view class="watch-item" wx:for="{{filtered}}" wx:key="animeId">
+      <template is="anime-row" data="{{item: item}}" />
+      <view class="watch-actions">
+        <view class="watch-status-chip {{item.status === 'WANT' ? 'active' : ''}}" data-id="{{item.animeId}}" data-status="WANT" catchtap="setStatus">想看</view>
+        <view class="watch-status-chip {{item.status === 'WATCHING' ? 'active' : ''}}" data-id="{{item.animeId}}" data-status="WATCHING" catchtap="setStatus">在看</view>
+        <view class="watch-status-chip {{item.status === 'WATCHED' ? 'active' : ''}}" data-id="{{item.animeId}}" data-status="WATCHED" catchtap="setStatus">看过</view>
+        <view class="watch-remove" data-id="{{item.animeId}}" catchtap="remove">移出片单</view>
+      </view>
+    </view>
+  </block>
+</view>

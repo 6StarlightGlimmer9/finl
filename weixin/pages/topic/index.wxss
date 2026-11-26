@@ -1,0 +1,13 @@
+.topic-hero-title { font-size: 42rpx; font-weight: 900; margin: 12rpx 0; line-height: 1.35; }
+.topic-hero-desc { font-size: 26rpx; color: #d8cfd4; line-height: 1.8; }
+.topic-hero-meta { font-size: 21rpx; color: #ff9ec0; margin-top: 20rpx; }
+.post-head { margin-top: 40rpx; }
+.post-head .section-title { font-size: 32rpx; font-weight: 800; }
+.post-card { padding: 22rpx; margin-bottom: 16rpx; }
+.post-head-info { margin-left: 16rpx; }
+.post-author { font-size: 26rpx; font-weight: 700; }
+.post-floor { font-size: 22rpx; color: #c8c0ca; }
+.post-content { font-size: 26rpx; color: #55505a; line-height: 1.8; margin-top: 14rpx; }
+.reply-box { margin-top: 32rpx; padding: 20rpx; }
+.reply-box .form-textarea { height: 260rpx; }
+.reply-button { margin-top: 20rpx; }

@@ -1,0 +1,12 @@
+.login-page { padding-top: 60rpx; }
+.login-brand { font-size: 48rpx; font-weight: 900; text-align: center; }
+.login-mark { color: #f25c86; font-size: 56rpx; margin-right: 10rpx; }
+.login-sub { text-align: center; font-size: 25rpx; color: #817b83; margin: 10rpx 0 48rpx; }
+.login-card { padding: 28rpx; }
+.mode-tabs { display: flex; border-bottom: 1rpx solid #e9e4e5; margin-bottom: 10rpx; }
+.mode-tab { flex: 1; text-align: center; font-size: 28rpx; padding: 18rpx 0; color: #817b83; position: relative; }
+.mode-tab.active { color: #17151a; font-weight: 800; }
+.mode-tab.active:after { content: ''; position: absolute; left: 30%; right: 30%; bottom: -1rpx; height: 4rpx; background: #f25c86; border-radius: 4rpx; }
+.form-error { color: #d94f6d; font-size: 24rpx; margin-top: 18rpx; }
+.login-submit { margin-top: 32rpx; }
+

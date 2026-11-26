@@ -1,0 +1,22 @@
+<view class="page login-page">
+  <view class="login-brand"><text class="login-mark">◈</text>次元放映室</view>
+  <view class="login-sub">把值得看的故事，放映给懂的人</view>
+
+  <view class="card login-card">
+    <view class="mode-tabs">
+      <view class="mode-tab {{mode === 'login' ? 'active' : ''}}" data-mode="login" bindtap="switchMode">登录</view>
+      <view class="mode-tab {{mode === 'register' ? 'active' : ''}}" data-mode="register" bindtap="switchMode">注册</view>
+    </view>
+
+    <view class="form-label">账号 / 邮箱</view>
+    <input class="form-input" placeholder="请输入用户名" value="{{form.username}}" data-field="username" bindinput="onInput" />
+    <view wx:if="{{mode === 'register'}}" class="form-label">邮箱</view>
+    <input wx:if="{{mode === 'register'}}" class="form-input" placeholder="用于注册校验" value="{{form.email}}" data-field="email" bindinput="onInput" type="text" />
+    <view class="form-label">密码</view>
+    <input class="form-input" placeholder="请输入密码" value="{{form.password}}" data-field="password" bindinput="onInput" password="true" />
+
+    <view wx:if="{{error}}" class="form-error">{{error}}</view>
+    <view class="btn-primary btn-block login-submit {{loading ? 'btn-disabled' : ''}}" bindtap="submit">{{loading ? '请稍候…' : (mode === 'login' ? '登录放映室' : '创建账号')}}</view>
+  </view>
+
+</view>

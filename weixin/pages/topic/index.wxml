@@ -1,0 +1,37 @@
+<view class="page">
+  <view wx:if="{{error}}" class="empty">
+    <view>{{error}}</view>
+    <view class="btn-ghost btn-small empty-cta" bindtap="load">重新加载</view>
+  </view>
+  <view wx:if="{{loading && !topic}}" class="loading">正在打开话题…</view>
+
+  <block wx:if="{{topic}}">
+    <view class="panel-dark topic-hero">
+      <view class="eyebrow">TOPIC / {{topic.tag}}</view>
+      <view class="topic-hero-title">{{topic.title}}</view>
+      <view class="topic-hero-desc">{{topic.description || '一起来聊聊吧'}}</view>
+      <view class="topic-hero-meta">{{topic.postCount}} 条回复 · 由 {{topic.author}} 发起</view>
+    </view>
+
+    <view class="section-head post-head">
+      <view class="section-title">全部回复 {{posts.length}}</view>
+    </view>
+    <view wx:if="{{!posts.length}}" class="empty">还没有回复，来抢占沙发</view>
+    <view class="card post-card" wx:for="{{posts}}" wx:key="id">
+      <view class="row">
+        <view class="avatar pink">{{item.initial}}</view>
+        <view class="flex-1 post-head-info">
+          <view class="post-author">{{item.author}}</view>
+          <view class="sub">{{item.time}}</view>
+        </view>
+        <text class="post-floor">#{{index + 1}}</text>
+      </view>
+      <view class="post-content">{{item.content}}</view>
+    </view>
+
+    <view class="card reply-box">
+      <textarea class="form-textarea" placeholder="说说你的看法…" value="{{reply}}" bindinput="onReplyInput" maxlength="1000" />
+      <view class="btn-primary btn-block reply-button" bindtap="submitReply">发布回复</view>
+    </view>
+  </block>
+</view>

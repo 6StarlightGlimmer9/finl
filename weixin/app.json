@@ -1,0 +1,39 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/anime/index",
+    "pages/reviews/index",
+    "pages/community/index",
+    "pages/profile/index",
+    "pages/detail/index",
+    "pages/search/index",
+    "pages/login/index",
+    "pages/watchlist/index",
+    "pages/topic/index",
+    "pages/web/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "次元放映室",
+    "backgroundColor": "#f8f6f4",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8b848b",
+    "selectedColor": "#f25c86",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/anime/index", "text": "番剧" },
+      { "pagePath": "pages/reviews/index", "text": "漫评" },
+      { "pagePath": "pages/community/index", "text": "社群" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

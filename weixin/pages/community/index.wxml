@@ -1,0 +1,128 @@
+<view class="page">
+  <view class="panel-dark community-stats">
+    <view class="eyebrow">ACGN COMMUNITY</view>
+    <view class="stats-title">和同好一起，把喜欢聊透</view>
+    <view class="stats-grid">
+      <view><text class="stats-num">{{stats.topicCount || 0}}</text><text class="stats-label">个话题</text></view>
+      <view><text class="stats-num">{{stats.groupCount || 0}}</text><text class="stats-label">个小组</text></view>
+      <view><text class="stats-num">{{stats.postCount || 0}}</text><text class="stats-label">条回复</text></view>
+      <view><text class="stats-num">{{stats.memberCount || 0}}</text><text class="stats-label">次参与</text></view>
+    </view>
+  </view>
+
+  <view class="chip-row community-tabs">
+    <view wx:for="{{tabs}}" wx:key="value" class="chip pink {{tab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="switchTab">{{item.label}}</view>
+  </view>
+
+  <view wx:if="{{error}}" class="empty">
+    <view>{{error}}</view>
+    <view class="btn-ghost btn-small empty-cta" bindtap="load">重新加载</view>
+  </view>
+  <view wx:if="{{loading}}" class="loading">同好们正在集合…</view>
+
+  <block wx:if="{{!loading && !error}}">
+    <block wx:if="{{tab === 'topics'}}">
+      <view class="row-between section-inline">
+        <view class="section-title">话题广场</view>
+        <view class="btn-primary btn-small" bindtap="openTopicModal">发起话题</view>
+      </view>
+      <view wx:if="{{!topics.length}}" class="empty">还没有话题，来发起第一个吧</view>
+      <view class="card topic-card topic-{{item.color}}" wx:for="{{topics}}" wx:key="id" data-id="{{item.id}}" bindtap="openTopic">
+        <view class="topic-dot"></view>
+        <view class="flex-1">
+          <view class="topic-title">{{item.title}}</view>
+          <view class="topic-desc clamp-2">{{item.description || '一起来聊聊这个话题吧'}}</view>
+          <view class="topic-meta">{{item.tag}} · {{item.postCount}} 条回复 · {{item.author}}</view>
+        </view>
+        <view class="topic-arrow">›</view>
+      </view>
+    </block>
+
+    <block wx:if="{{tab === 'groups'}}">
+      <view class="section-inline"><view class="section-title">同好小组</view></view>
+      <view wx:if="{{!groups.length}}" class="empty">暂无小组</view>
+      <view class="card group-card" wx:for="{{groups}}" wx:key="id">
+        <view class="group-symbol">组</view>
+        <view class="flex-1">
+          <view class="topic-title">{{item.title}}</view>
+          <view class="topic-desc clamp-2">{{item.description}}</view>
+          <view class="topic-meta">{{item.tag}} · {{item.memberCount}} 位成员</view>
+        </view>
+        <view class="group-join {{item.joined ? 'joined' : ''}}" data-id="{{item.id}}" data-index="{{index}}" catchtap="joinGroup">{{item.joined ? '已加入' : '加入'}}</view>
+      </view>
+    </block>
+
+    <block wx:if="{{tab === 'events'}}">
+      <view class="section-inline"><view class="section-title">放映会日历</view></view>
+      <view wx:if="{{!events.length}}" class="empty">暂无放映会</view>
+      <view class="card event-card" wx:for="{{events}}" wx:key="id">
+        <view class="event-badge">放映</view>
+        <view class="flex-1">
+          <view class="topic-title">{{item.title}}</view>
+          <view class="topic-desc clamp-2">{{item.description}}</view>
+          <view class="topic-meta">{{item.tag}} · {{item.attendeeCount}} 人报名</view>
+        </view>
+        <view class="group-join {{item.signedUp ? 'joined' : ''}}" data-id="{{item.id}}" data-index="{{index}}" catchtap="signupEvent">{{item.signedUp ? '已报名' : '报名'}}</view>
+      </view>
+    </block>
+
+    <block wx:if="{{tab === 'comments'}}">
+      <view class="section-inline"><view class="section-title">放映室最新短评</view></view>
+      <view wx:if="{{!comments.length}}" class="empty">暂无短评</view>
+      <view class="card community-comment" wx:for="{{comments}}" wx:key="id">
+        <view class="row">
+          <view class="avatar pink">{{item.initial}}</view>
+          <view class="flex-1 comment-head">
+            <view class="comment-name">{{item.nickname}}</view>
+            <view class="sub">{{item.time}}</view>
+          </view>
+        </view>
+        <view class="comment-content">{{item.content}}</view>
+        <view class="row-between">
+          <view class="comment-anime" data-id="{{item.animeId}}" catchtap="openHotAnime">《{{item.animeTitle}}》›</view>
+          <view class="like-button {{item.liked ? 'liked' : ''}}" data-id="{{item.id}}" data-index="{{index}}" catchtap="likeComment">{{item.liked ? '已共鸣' : '有共鸣'}} {{item.likes}}</view>
+        </view>
+      </view>
+    </block>
+
+    <view class="section" wx:if="{{hotAnime.length}}">
+      <view class="section-head"><view class="section-title">热议作品</view></view>
+      <scroll-view scroll-x="true" class="hot-scroll">
+        <view class="hot-inner">
+          <view class="hot-item" wx:for="{{hotAnime}}" wx:key="animeId" data-id="{{item.animeId}}" bindtap="openHotAnime">
+            <image src="{{item.cover}}" mode="aspectFill" lazy-load="true" />
+            <view class="hot-title ellipsis">{{item.title}}</view>
+            <view class="sub">{{item.commentCount}} 条讨论</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="card tags-card" wx:if="{{trendingTags.length}}">
+      <view class="section-title">趋势标签</view>
+      <view class="chip-row">
+        <view class="chip" wx:for="{{trendingTags}}" wx:key="name">{{item.name}} · {{item.count}}</view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{topicOpen}}" class="modal-mask" bindtap="closeTopicModal"></view>
+  <view wx:if="{{topicOpen}}" class="modal-panel" catchtap="noop">
+    <view class="modal-head">
+      <view class="modal-title">发起新话题</view>
+      <view class="modal-close" bindtap="closeTopicModal">×</view>
+    </view>
+    <view class="form-label">话题标题</view>
+    <input class="form-input" placeholder="想和大家聊点什么？" value="{{form.title}}" data-field="title" bindinput="onTopicInput" maxlength="80" />
+    <view class="form-label">话题描述（会作为首条回复）</view>
+    <textarea class="form-textarea" placeholder="补充一点背景或你的观点…" value="{{form.description}}" data-field="description" bindinput="onTopicInput" maxlength="1000" />
+    <view class="form-label">主题色</view>
+    <view class="chip-row">
+      <view wx:for="{{colors}}" wx:key="value" class="chip pink {{form.color === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onColor">{{item.label}}</view>
+    </view>
+    <view class="modal-actions">
+      <view class="btn-ghost" bindtap="closeTopicModal">取消</view>
+      <view class="btn-primary {{submitting ? 'btn-disabled' : ''}}" bindtap="submitTopic">发布话题</view>
+    </view>
+  </view>
+</view>

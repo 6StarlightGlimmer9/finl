@@ -1,0 +1,42 @@
+.detail-hero { position: relative; width: 100%; height: 420rpx; border-radius: 18rpx; overflow: hidden; background: #241c25; }
+.hero-cover { width: 100%; height: 100%; display: block; }
+.hero-shade { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: linear-gradient(0deg, rgba(12, 10, 16, .94), rgba(12, 10, 16, .15) 75%); }
+.hero-copy { position: absolute; left: 30rpx; right: 30rpx; bottom: 28rpx; color: #fff; }
+.hero-type { font-size: 21rpx; letter-spacing: 2rpx; color: #ffabc2; }
+.hero-title { font-size: 48rpx; font-weight: 900; line-height: 1.25; margin: 10rpx 0 4rpx; }
+.hero-original { font-size: 22rpx; color: #d8cfd4; }
+.hero-score { margin-top: 16rpx; display: flex; align-items: baseline; }
+.hero-score-num { font-size: 52rpx; font-weight: 900; color: #ffca6b; }
+.hero-score-tip { font-size: 22rpx; color: #e5dce1; margin-left: 12rpx; }
+
+.detail-summary { margin-top: 20rpx; }
+.tag-row { margin-bottom: 12rpx; }
+.summary-text { font-size: 26rpx; color: #55505a; line-height: 1.8; margin-bottom: 12rpx; }
+
+.action-card { margin-top: 20rpx; }
+.action-card .section-title { font-size: 30rpx; font-weight: 800; }
+.action-row { display: flex; align-items: center; justify-content: space-between; margin-top: 18rpx; }
+.action-main-value { display: block; font-size: 32rpx; font-weight: 800; color: #f25c86; }
+.watch-chips { margin-top: 16rpx; }
+.pv-button { margin-top: 12rpx; background: #17151a; color: #fff; text-align: center; border-radius: 10rpx; padding: 18rpx; font-size: 25rpx; }
+
+.big-score { font-size: 52rpx; line-height: 1; }
+.dist-list { margin-top: 24rpx; }
+.dist-row { display: flex; align-items: center; margin-bottom: 10rpx; }
+.dist-label { width: 44rpx; font-size: 21rpx; color: #817b83; }
+.dist-track { flex: 1; height: 16rpx; background: #f2edef; border-radius: 999rpx; overflow: hidden; }
+.dist-fill { height: 100%; background: linear-gradient(90deg, #ffb0c7, #f25c86); border-radius: 999rpx; }
+.dist-count { width: 60rpx; text-align: right; font-size: 21rpx; color: #817b83; }
+
+.comment-editor { display: flex; align-items: center; gap: 16rpx; padding: 16rpx; }
+.comment-editor .form-input { flex: 1; }
+.comment-send { flex: none; }
+.comment-item { padding: 22rpx; }
+.comment-head { margin-left: 16rpx; }
+.comment-name { font-size: 26rpx; font-weight: 600; }
+.comment-content { font-size: 26rpx; color: #55505a; line-height: 1.7; margin: 14rpx 0; }
+.comment-like { display: inline-flex; align-items: center; font-size: 22rpx; color: #817b83; background: #f8f6f4; border-radius: 999rpx; padding: 8rpx 20rpx; }
+.comment-like.liked { color: #f25c86; background: #fff0f4; }
+
+.rate-value { font-size: 64rpx; font-weight: 900; color: #f25c86; text-align: center; margin: 20rpx 0; }
+.rate-hint { font-size: 21rpx; color: #a19aa2; text-align: center; margin-top: 16rpx; line-height: 1.7; }

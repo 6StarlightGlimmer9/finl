@@ -1,0 +1,60 @@
+/* 卡片通用样式位于 app.wxss */
+.brand-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
+.brand { font-size: 36rpx; font-weight: 900; letter-spacing: 1rpx; }
+.brand-mark { color: #f25c86; font-size: 44rpx; margin-right: 8rpx; }
+.brand-accent { color: #f25c86; }
+.brand-search { flex: 1; margin-left: 24rpx; max-width: 340rpx; height: 76rpx; display: flex; align-items: center; padding: 0 24rpx; background: #fff; border: 1rpx solid #e9e4e5; border-radius: 999rpx; font-size: 24rpx; color: #a19aa2; overflow: hidden; white-space: nowrap; }
+
+/* 加载失败状态：区别于 .empty 空状态，带醒目提示与排查入口 */
+.error-card { background: #fff; border: 1rpx solid #f7c3d3; border-left: 8rpx solid #f25c86; border-radius: 16rpx; padding: 24rpx; margin-bottom: 24rpx; }
+.error-head { display: flex; align-items: flex-start; }
+.error-icon { width: 48rpx; height: 48rpx; flex: none; margin-right: 18rpx; border-radius: 50%; background: #d94f6d; color: #fff; font-size: 30rpx; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.error-title { font-size: 29rpx; font-weight: 800; }
+.error-message { font-size: 25rpx; color: #d94f6d; line-height: 1.6; margin-top: 6rpx; word-break: break-all; }
+.error-actions { display: flex; gap: 16rpx; margin-top: 20rpx; }
+.error-actions > view { flex: 1; }
+
+.hero-swiper { height: 380rpx; border-radius: 18rpx; overflow: hidden; background: #241c25; }
+.slide { position: relative; width: 100%; height: 380rpx; }
+.slide-bg { width: 100%; height: 100%; display: block; }
+.slide-shade { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: linear-gradient(0deg, rgba(12, 10, 16, .9), rgba(12, 10, 16, .05) 70%); }
+.slide-copy { position: absolute; left: 30rpx; right: 30rpx; bottom: 46rpx; color: #fff; }
+.slide-label { font-size: 20rpx; letter-spacing: 2rpx; color: #ffabc2; font-weight: 700; }
+.slide-title { font-size: 46rpx; font-weight: 900; line-height: 1.25; margin: 10rpx 0; }
+.slide-desc { font-size: 23rpx; color: #eee6ea; line-height: 1.6; }
+.slide-meta { margin-top: 12rpx; font-size: 22rpx; color: #ffca6b; }
+
+.entry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16rpx; margin-top: 28rpx; }
+.entry { background: #fff; border: 1rpx solid #e9e4e5; border-radius: 14rpx; padding: 22rpx 0; display: flex; flex-direction: column; align-items: center; font-size: 24rpx; }
+.entry-icon { width: 72rpx; height: 72rpx; border-radius: 50%; background: #fff0f4; color: #c04c70; display: flex; align-items: center; justify-content: center; font-size: 30rpx; font-weight: 800; margin-bottom: 12rpx; }
+
+.poster-strip { width: 100%; white-space: nowrap; }
+.poster-strip-inner { display: inline-flex; padding-right: 10rpx; }
+.poster-strip .poster-card { width: 220rpx; flex: none; margin-right: 18rpx; }
+.poster-strip .poster-cover { height: 300rpx; }
+
+.rank-card { padding: 8rpx 24rpx; }
+.rank-row { display: flex; align-items: center; padding: 18rpx 0; border-bottom: 1rpx solid #f1edee; }
+.rank-row:last-child { border-bottom: 0; }
+.rank-no { width: 48rpx; flex: none; color: #f25c86; font-size: 26rpx; font-weight: 800; }
+.rank-cover { width: 72rpx; height: 96rpx; flex: none; border-radius: 8rpx; background: #2a2028; }
+.rank-body { flex: 1; min-width: 0; padding: 0 18rpx; }
+.rank-title { font-size: 28rpx; font-weight: 600; }
+.rank-meta { font-size: 21rpx; color: #817b83; margin-top: 4rpx; }
+.rank-score { flex: none; font-size: 30rpx; color: #e99537; font-weight: 800; }
+
+.review-mini { padding: 22rpx; }
+.review-mini-author { margin-left: 16rpx; font-size: 25rpx; font-weight: 600; flex: 1; }
+.review-mini-score { font-size: 26rpx; }
+.review-mini-title { font-size: 30rpx; font-weight: 800; margin: 16rpx 0 8rpx; }
+.review-mini-excerpt { font-size: 25rpx; color: #696269; line-height: 1.7; }
+.review-mini-foot { font-size: 21rpx; color: #a19aa2; margin-top: 12rpx; }
+
+.comment-mini { display: flex; padding: 18rpx 0; border-bottom: 1rpx solid #f1edee; }
+.comment-mini:last-child { border-bottom: 0; }
+.comment-mini .flex-1 { margin-left: 16rpx; }
+.comment-mini-name { font-size: 25rpx; font-weight: 600; }
+.comment-mini-text { font-size: 24rpx; color: #55505a; margin: 6rpx 0; }
+.comment-mini-anime { font-size: 21rpx; color: #f25c86; }
+
+.home-foot { display: flex; justify-content: center; gap: 28rpx; margin-top: 56rpx; font-size: 21rpx; color: #a19aa2; }

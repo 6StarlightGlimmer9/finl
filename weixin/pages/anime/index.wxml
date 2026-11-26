@@ -1,0 +1,56 @@
+<import src="/templates/cards.wxml" />
+
+<view class="page">
+  <view class="catalog-head">
+    <view>
+      <view class="eyebrow">DIMENSION LIBRARY</view>
+      <view class="catalog-title">番剧与剧场版</view>
+      <view class="sub">{{filtered.length}} 部作品 · 真实同好评分</view>
+    </view>
+    <view class="catalog-search" bindtap="goSearch">全站搜索 ›</view>
+  </view>
+
+  <view class="search-bar">
+    <input class="search-input" placeholder="在片库中筛选标题 / 标签" value="{{keyword}}" bindinput="onKeyword" confirm-type="search" />
+    <view wx:if="{{keyword}}" class="search-clear" bindtap="clearKeyword">清除</view>
+  </view>
+
+  <view class="filter-panel">
+    <view class="filter-label">类型</view>
+    <view class="chip-row">
+      <view wx:for="{{typeChips}}" wx:key="*this" class="chip pink {{type === item ? 'active' : ''}}" data-value="{{item}}" bindtap="onType">{{item}}</view>
+    </view>
+
+    <view class="filter-label">标签</view>
+    <scroll-view scroll-x="true" class="genre-scroll">
+      <view class="genre-inner">
+        <view wx:for="{{genreChips}}" wx:key="*this" class="chip {{genre === item ? 'active' : ''}}" data-value="{{item}}" bindtap="onGenre">{{item}}</view>
+      </view>
+    </scroll-view>
+
+    <view class="filter-label">状态与排序</view>
+    <view class="chip-row">
+      <view wx:for="{{statusChips}}" wx:key="value" class="chip {{status === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onStatus">{{item.label}}</view>
+    </view>
+    <view class="chip-row">
+      <view wx:for="{{sortChips}}" wx:key="value" class="chip pink {{sort === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onSort">{{item.label}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{error}}" class="empty">
+    <view>{{error}}</view>
+    <view class="btn-ghost btn-small empty-cta" bindtap="loadData">重新加载</view>
+  </view>
+  <view wx:if="{{loading}}" class="loading">片库装载中…</view>
+
+  <view wx:if="{{!loading && !error && !list.length}}" class="empty">没有找到符合条件的作品，换个筛选条件试试</view>
+
+  <view wx:if="{{list.length}}" class="poster-grid">
+    <block wx:for="{{list}}" wx:key="id">
+      <template is="poster-card" data="{{item: item}}" />
+    </block>
+  </view>
+
+  <view wx:if="{{hasMore}}" class="btn-ghost btn-block load-more" bindtap="loadMore">加载更多（{{list.length}} / {{filtered.length}}）</view>
+  <view wx:elif="{{list.length && !hasMore}}" class="state-line">已经到底啦，共 {{filtered.length}} 部作品</view>
+</view>

@@ -1,0 +1,25 @@
+<!-- 通用卡片模板：使用页面需定义 openDetail(e)，并传入装饰后的 item -->
+<template name="poster-card">
+  <view class="poster-card" hover-class="tap-hover" bindtap="openDetail" data-id="{{item.id}}">
+    <view class="poster-cover">
+      <image src="{{item.cover}}" mode="aspectFill" lazy-load="true" />
+      <view class="poster-score">{{item.scoreText}}</view>
+    </view>
+    <view class="poster-title">{{item.title}}</view>
+    <view class="poster-meta">{{item.meta}}</view>
+  </view>
+</template>
+
+<template name="anime-row">
+  <view class="anime-row" hover-class="tap-hover" bindtap="openDetail" data-id="{{item.id}}">
+    <image class="anime-row-cover" src="{{item.cover}}" mode="aspectFill" lazy-load="true" />
+    <view class="anime-row-body">
+      <view class="anime-row-title">{{item.title}}</view>
+      <view class="anime-row-meta">{{item.meta}}</view>
+      <view>
+        <text class="mini-tag" wx:for="{{item.topGenres}}" wx:for-item="genre" wx:key="*this">{{genre}}</text>
+      </view>
+    </view>
+    <view class="anime-row-score">{{item.scoreText}}</view>
+  </view>
+</template>

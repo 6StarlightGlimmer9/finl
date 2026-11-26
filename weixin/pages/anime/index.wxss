@@ -1,0 +1,15 @@
+.catalog-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28rpx; }
+.catalog-title { font-size: 44rpx; font-weight: 900; margin: 6rpx 0 4rpx; }
+.catalog-search { font-size: 24rpx; color: #f25c86; padding-bottom: 6rpx; }
+
+.search-bar { display: flex; align-items: center; background: #fff; border: 1rpx solid #e9e4e5; border-radius: 12rpx; padding: 0 24rpx; min-height: 96rpx; margin-bottom: 20rpx; }
+.search-input { flex: 1; height: 96rpx; font-size: 30rpx; }
+.search-clear { font-size: 22rpx; color: #817b83; padding-left: 16rpx; }
+
+.filter-panel { background: #fff; border: 1rpx solid #e9e4e5; border-radius: 16rpx; padding: 20rpx 20rpx 8rpx; margin-bottom: 24rpx; }
+.filter-label { font-size: 22rpx; color: #a19aa2; margin: 8rpx 0 14rpx; }
+.genre-scroll { width: 100%; white-space: nowrap; margin-bottom: 4rpx; }
+.genre-inner { display: inline-flex; }
+.genre-inner .chip { margin-bottom: 12rpx; }
+
+.load-more { margin-top: 28rpx; font-size: 25rpx; }

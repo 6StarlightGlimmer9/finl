@@ -1,0 +1,82 @@
+<view class="page review-page">
+  <view class="panel-dark stats-panel">
+    <view class="eyebrow">LONG REVIEWS</view>
+    <view class="stats-title">写下你与作品的故事</view>
+    <view class="stats-grid">
+      <view><text class="stats-num">{{stats.total}}</text><text class="stats-label">篇长评</text></view>
+      <view><text class="stats-num">{{stats.writers}}</text><text class="stats-label">位写手</text></view>
+      <view><text class="stats-num">{{stats.likes}}</text><text class="stats-label">次共鸣</text></view>
+      <view><text class="stats-num">{{stats.avgScore}}</text><text class="stats-label">平均打分</text></view>
+    </view>
+  </view>
+
+  <view class="review-toolbar">
+    <view class="chip-row">
+      <view wx:for="{{sorts}}" wx:key="value" class="chip pink {{sort === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="onSort">{{item.label}}</view>
+    </view>
+    <view class="search-bar">
+      <input class="search-input" placeholder="搜索长评 / 作品 / 作者" value="{{keyword}}" bindinput="onKeyword" bindconfirm="doSearch" confirm-type="search" />
+      <view class="search-submit" bindtap="doSearch">检索</view>
+    </view>
+  </view>
+
+  <view wx:if="{{error}}" class="empty">
+    <view>{{error}}</view>
+    <view class="btn-ghost btn-small empty-cta" bindtap="load">重新加载</view>
+  </view>
+  <view wx:if="{{loading}}" class="loading">正在翻阅长评…</view>
+  <view wx:if="{{!loading && !reviews.length}}" class="empty">还没有匹配的长评，来写第一篇吧</view>
+
+  <view class="card review-card" wx:for="{{reviews}}" wx:key="id">
+    <view class="row">
+      <view class="avatar pink">{{item.initial}}</view>
+      <view class="flex-1 review-author">
+        <view class="review-name">{{item.nickname}}</view>
+        <view class="sub">{{item.time}} · {{item.readMinutes}} 分钟阅读</view>
+      </view>
+      <view class="review-score score">★ {{item.scoreText}}</view>
+    </view>
+    <view class="review-title">{{item.title}}</view>
+    <view class="review-excerpt clamp-3">{{item.excerpt}}</view>
+    <view class="review-tags">
+      <text class="tag" wx:for="{{item.genres}}" wx:for-item="genre" wx:key="*this">{{genre}}</text>
+    </view>
+    <view class="row-between review-foot">
+      <view class="review-anime" data-id="{{item.animeId}}" catchtap="openAnime">《{{item.animeTitle}}》›</view>
+      <view class="like-button {{item.liked ? 'liked' : ''}}" data-id="{{item.id}}" data-index="{{index}}" catchtap="toggleLike">{{item.liked ? '已共鸣' : '有共鸣'}} {{item.likes}}</view>
+    </view>
+  </view>
+
+  <view class="card writers-card" wx:if="{{writers.length}}">
+    <view class="section-title">写手榜</view>
+    <view class="writer-row" wx:for="{{writers}}" wx:key="nickname">
+      <text class="writer-rank">{{index + 1}}</text>
+      <text class="flex-1">{{item.nickname}}</text>
+      <text class="sub">{{item.count}} 篇 · {{item.likes}} 共鸣</text>
+    </view>
+  </view>
+
+  <view class="write-fab" hover-class="fab-hover" bindtap="openWrite">写长评</view>
+
+  <view wx:if="{{writeOpen}}" class="modal-mask" bindtap="closeWrite"></view>
+  <view wx:if="{{writeOpen}}" class="modal-panel" catchtap="noop">
+    <view class="modal-head">
+      <view class="modal-title">写一篇长评</view>
+      <view class="modal-close" bindtap="closeWrite">×</view>
+    </view>
+    <view class="form-label">关联作品</view>
+    <picker mode="selector" range="{{animeTitles}}" value="{{animeIndex}}" bindchange="onAnimePick">
+      <view class="form-picker">{{animeTitles[animeIndex] || '请选择作品'}} ▾</view>
+    </picker>
+    <view class="form-label">标题</view>
+    <input class="form-input" placeholder="给长评起个标题" value="{{form.title}}" data-field="title" bindinput="onFormInput" maxlength="80" />
+    <view class="form-label">打分：{{form.score}} / 10</view>
+    <slider min="1" max="10" step="1" value="{{form.score}}" activeColor="#f25c86" backgroundColor="#e9e4e5" block-size="24" bindchanging="onScoreSlide" bindchange="onScoreSlide" />
+    <view class="form-label">正文</view>
+    <textarea class="form-textarea" placeholder="写下剧情、演出、音乐或那些让你记住的瞬间…" value="{{form.content}}" data-field="content" bindinput="onFormInput" maxlength="5000" />
+    <view class="modal-actions">
+      <view class="btn-ghost" bindtap="closeWrite">取消</view>
+      <view class="btn-primary {{submitting ? 'btn-disabled' : ''}}" bindtap="submitWrite">发布长评</view>
+    </view>
+  </view>
+</view>

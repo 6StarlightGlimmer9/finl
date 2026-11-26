@@ -1,0 +1,32 @@
+.review-page { padding-bottom: calc(var(--tabbar-total, 172rpx) + 180rpx); }
+.stats-title { font-size: 38rpx; font-weight: 900; margin: 10rpx 0 26rpx; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+.stats-num { display: block; font-size: 36rpx; font-weight: 800; color: #ff9ec0; }
+.stats-label { display: block; font-size: 20rpx; color: #b6aeb6; margin-top: 4rpx; }
+
+.review-toolbar { margin-top: 28rpx; }
+.search-bar { display: flex; align-items: center; background: #fff; border: 1rpx solid #e9e4e5; border-radius: 12rpx; padding: 0 24rpx; min-height: 96rpx; margin-bottom: 8rpx; }
+.search-input { flex: 1; height: 96rpx; font-size: 30rpx; }
+.search-submit { font-size: 28rpx; color: #f25c86; padding-left: 16rpx; }
+
+.review-card { margin-top: 20rpx; padding: 26rpx; }
+.review-author { margin-left: 16rpx; }
+.review-name { font-size: 26rpx; font-weight: 700; }
+.review-score { font-size: 28rpx; }
+.review-title { font-size: 34rpx; font-weight: 800; margin: 20rpx 0 10rpx; line-height: 1.4; }
+.review-excerpt { font-size: 26rpx; color: #696269; line-height: 1.8; }
+.review-tags { margin-top: 14rpx; }
+.review-foot { margin-top: 12rpx; padding-top: 16rpx; border-top: 1rpx solid #f1edee; }
+.review-anime { font-size: 23rpx; color: #f25c86; }
+.like-button { font-size: 23rpx; color: #817b83; background: #f8f6f4; border-radius: 999rpx; padding: 8rpx 20rpx; }
+.like-button.liked { color: #f25c86; background: #fff0f4; }
+
+.writers-card { margin-top: 36rpx; }
+.writers-card .section-title { font-size: 30rpx; font-weight: 800; margin-bottom: 10rpx; }
+.writer-row { display: flex; align-items: center; padding: 14rpx 0; border-bottom: 1rpx solid #f1edee; font-size: 25rpx; }
+.writer-row:last-child { border-bottom: 0; }
+.writer-rank { width: 48rpx; color: #f25c86; font-weight: 800; }
+
+@keyframes fab-in { 0% { opacity: 0; transform: translateY(24rpx) scale(.9) } 100% { opacity: 1; transform: translateY(0) scale(1) } }
+.write-fab { position: fixed; right: 30rpx; bottom: calc(var(--tabbar-total, 172rpx) + 28rpx); z-index: 1000; background: #f25c86; color: #fff; font-size: 27rpx; font-weight: 700; padding: 22rpx 36rpx; border-radius: 999rpx; box-shadow: 0 10rpx 30rpx rgba(242, 92, 134, .35); animation: fab-in .36s ease .1s backwards; }
+.fab-hover { transform: scale(.94); opacity: .9; }

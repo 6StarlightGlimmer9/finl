@@ -1,0 +1,104 @@
+<view class="page">
+  <view wx:if="{{error}}" class="empty">
+    <view>{{error}}</view>
+    <view class="btn-ghost btn-small empty-cta" bindtap="load">重新加载</view>
+  </view>
+  <view wx:if="{{loading && !anime}}" class="loading">正在载入作品…</view>
+
+  <block wx:if="{{anime}}">
+    <view class="detail-hero">
+      <image class="hero-cover" src="{{anime.cover}}" mode="aspectFill" />
+      <view class="hero-shade"></view>
+      <view class="hero-copy">
+        <view class="hero-type">{{anime.mediaType === 'MOVIE' ? '剧场版' : 'TV 番剧'}} · {{anime.season || '放映室'}}</view>
+        <view class="hero-title">{{anime.title}}</view>
+        <view wx:if="{{anime.originalTitle}}" class="hero-original">{{anime.originalTitle}}</view>
+        <view class="hero-score"><text class="hero-score-num">{{anime.scoreText}}</text><text class="hero-score-tip">/ 10 · {{anime.scoreCount}} 人评分</text></view>
+      </view>
+    </view>
+
+    <view class="card detail-summary">
+      <view class="tag-row">
+        <text class="tag" wx:for="{{anime.genres}}" wx:for-item="genre" wx:key="*this">{{genre}}</text>
+        <text class="tag">{{anime.mediaType === 'MOVIE' ? '剧场版' : '番剧'}}</text>
+      </view>
+      <view class="summary-text">{{anime.summary || '这部作品还没有简介，等你来补充第一印象。'}}</view>
+      <view class="sub">状态：{{anime.statusText}}</view>
+    </view>
+
+    <view class="card action-card">
+      <view class="section-title">我的放映室</view>
+      <view class="action-row">
+        <view class="action-main" bindtap="openRate">
+          <text class="action-main-value">{{rating.myRating ? rating.myRating + ' 分' : '打个分'}}</text>
+          <text class="sub">{{rating.myRating ? '点击修改评分' : '1 – 10 分，说说你的感受'}}</text>
+        </view>
+        <view class="btn-primary btn-small" bindtap="openRate">评分</view>
+      </view>
+      <view class="divider"></view>
+      <view class="row-between">
+        <view class="sub">加入片单</view>
+        <view class="sub" wx:if="{{watchStatus}}" bindtap="goWatchlist">查看我的片单 ›</view>
+      </view>
+      <view class="chip-row watch-chips">
+        <view class="chip pink {{watchStatus === 'WANT' ? 'active' : ''}}" data-status="WANT" bindtap="setWatch">想看</view>
+        <view class="chip pink {{watchStatus === 'WATCHING' ? 'active' : ''}}" data-status="WATCHING" bindtap="setWatch">在看</view>
+        <view class="chip pink {{watchStatus === 'WATCHED' ? 'active' : ''}}" data-status="WATCHED" bindtap="setWatch">看过</view>
+        <view wx:if="{{watchStatus}}" class="chip" bindtap="removeWatch">移出</view>
+      </view>
+      <view class="pv-button {{pvLoading ? 'btn-disabled' : ''}}" bindtap="openPv">{{pvLoading ? '正在解析…' : '观看 Bilibili 预览 / PV ›'}}</view>
+    </view>
+
+    <view class="card">
+      <view class="row-between">
+        <view class="section-title">评分分布</view>
+        <view class="score big-score">{{rating.score || 0}}</view>
+      </view>
+      <view class="sub">共 {{rating.count || 0}} 位同好打分</view>
+      <view class="dist-list">
+        <view class="dist-row" wx:for="{{bars}}" wx:key="score">
+          <text class="dist-label">{{item.score}}</text>
+          <view class="dist-track"><view class="dist-fill" style="width: {{item.percent}}%"></view></view>
+          <text class="dist-count">{{item.count}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-head">
+        <view><view class="eyebrow">COMMENTS</view><view class="section-title">同好短评 {{comments.length}}</view></view>
+      </view>
+      <view class="card comment-editor">
+        <input class="form-input" placeholder="{{loggedIn ? '聊聊这部作品…' : '登录后即可发表短评'}}" value="{{commentText}}" bindinput="onCommentInput" bindconfirm="submitComment" confirm-type="send" maxlength="1000" />
+        <view class="btn-primary btn-small comment-send" bindtap="submitComment">发布</view>
+      </view>
+      <view wx:if="{{!comments.length}}" class="empty">还没有短评，来写第一条吧</view>
+      <view class="card comment-item" wx:for="{{comments}}" wx:key="id">
+        <view class="row">
+          <view class="avatar">{{item.initial}}</view>
+          <view class="flex-1 comment-head">
+            <view class="comment-name">{{item.nickname}}</view>
+            <view class="sub">{{item.time}}</view>
+          </view>
+        </view>
+        <view class="comment-content">{{item.content}}</view>
+        <view class="comment-like {{item.liked ? 'liked' : ''}}" data-id="{{item.id}}" data-index="{{index}}" catchtap="toggleCommentLike">{{item.liked ? '已共鸣' : '有共鸣'}} {{item.likes}}</view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:if="{{rateOpen}}" class="modal-mask" bindtap="closeRate"></view>
+  <view wx:if="{{rateOpen}}" class="modal-panel" catchtap="noop">
+    <view class="modal-head">
+      <view class="modal-title">给《{{anime.title}}》打分</view>
+      <view class="modal-close" bindtap="closeRate">×</view>
+    </view>
+    <view class="rate-value">{{rateValue}} <text class="sub">/ 10 分</text></view>
+    <slider min="1" max="10" step="1" value="{{rateValue}}" activeColor="#f25c86" backgroundColor="#e9e4e5" block-size="24" bindchanging="onRateSlide" bindchange="onRateSlide" />
+    <view class="rate-hint">1–2 难以入戏 · 3–4 略有遗憾 · 5–6 尚可一看 · 7–8 值得推荐 · 9–10 神作</view>
+    <view class="modal-actions">
+      <view class="btn-ghost" bindtap="removeRating" wx:if="{{rating.myRating}}">取消评分</view>
+      <view class="btn-primary" bindtap="submitRate">提交评分</view>
+    </view>
+  </view>
+</view>
