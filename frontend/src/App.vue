@@ -112,7 +112,7 @@ async function loadHomeData() {
       id: item.id
     }))
   } catch {
-    // 网络异常时保留页面内默认推荐内容
+    // 网络异常时保持空态占位，不覆盖已加载的真实片单数据
   }
 }
 async function login() {

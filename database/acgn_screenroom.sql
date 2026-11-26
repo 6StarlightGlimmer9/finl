@@ -3,10 +3,11 @@
 -- ============================================================
 -- 文件位置：database/acgn_screenroom.sql
 -- 执行账号：root / root
--- 执行命令：mysql -u root -proot < database/acgn_screenroom.sql
+-- 数据库端口：3307（非默认端口；MySQL X Protocol 33070）
+-- 执行命令（PowerShell）：Get-Content -Raw -Encoding UTF8 .\database\acgn_screenroom.sql | & 'C:\Program Files\MySQL\MySQL Server 26.10\bin\mysql.exe' -u root -proot -P 3307 --protocol=TCP --default-character-set=utf8mb4
 --
 -- 使用说明：
--- 1. 本文件同时包含「建库建表」「旧库升级」「种子数据」「评分回算」四部分。
+-- 1. 本文件同时包含「建库建表」「旧库升级」「种子数据」「评分回算」「管理查询」五部分。
 -- 2. 新库直接执行即可；旧库重复执行也不会重复插入种子数据。
 -- 3. 所有番剧分数均来自 ratings 表中的真实用户评分，脚本不写入虚构评分人数。
 -- 4. 文件末尾附带常用管理查询，默认全部注释，不会自动执行。
@@ -22,7 +23,7 @@ CREATE DATABASE IF NOT EXISTS acgn_screenroom
 
 USE acgn_screenroom;
 
--- 1.1 用户表：登录账号、角色与加盐密码哈希
+-- 1.1 用户表：登录账号、角色与明文密码（本地演示库）
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户 ID',
   username VARCHAR(40) NOT NULL UNIQUE COMMENT '登录用户名',
@@ -43,7 +44,7 @@ CREATE TABLE IF NOT EXISTS anime (
   original_title VARCHAR(160) COMMENT '作品原名',
   summary TEXT COMMENT '剧情简介',
   cover_url VARCHAR(500) COMMENT '封面图片 URL，后台可修改',
-  pv_url VARCHAR(500) COMMENT 'PV 视频地址，后台可修改',
+  pv_url VARCHAR(500) COMMENT '预览地址（Bilibili 视频 / 番剧链接 / BV、av 号），后台可修改',
   season VARCHAR(30) COMMENT '季度，如 2026 夏',
   media_type ENUM('ANIME','MOVIE') NOT NULL DEFAULT 'ANIME' COMMENT '作品类型：番剧 / 电影',
   status ENUM('AIRING','FINISHED','UPCOMING') NOT NULL DEFAULT 'UPCOMING' COMMENT '播出状态',
@@ -171,7 +172,7 @@ CREATE TABLE IF NOT EXISTS community_items (
   description TEXT COMMENT '简介 / 首条发言 / 活动说明',
   tag VARCHAR(80) COMMENT '标签或时间',
   color VARCHAR(20) DEFAULT 'pink' COMMENT '主题色 pink / blue / black',
-  base_count INT NOT NULL DEFAULT 0 COMMENT '演示基数（人数 / 回复数）',
+  base_count INT NOT NULL DEFAULT 0 COMMENT '展示基数（与真实成员 / 回复数相加后展示）',
   user_id BIGINT COMMENT '创建者 ID',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   KEY idx_community_kind (kind),
@@ -255,6 +256,11 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 2.2.1 统一 reviews.score 为 INT，匹配 JPA Integer 类型校验
 ALTER TABLE reviews MODIFY score INT NOT NULL COMMENT '作者打分 1–10';
+
+-- 2.2.2 同步旧库字段注释，使其与当前明文密码、Bilibili 预览与社群真实计数口径一致
+ALTER TABLE users MODIFY password VARCHAR(255) NOT NULL COMMENT '明文密码（演示库，未加密）';
+ALTER TABLE anime MODIFY pv_url VARCHAR(500) COMMENT '预览地址（Bilibili 视频 / 番剧链接 / BV、av 号），后台可修改';
+ALTER TABLE community_items MODIFY base_count INT NOT NULL DEFAULT 0 COMMENT '展示基数（与真实成员 / 回复数相加后展示）';
 
 -- 2.3 修正历史空角色
 UPDATE users SET role = 'USER' WHERE role IS NULL OR role = '';
@@ -505,7 +511,7 @@ INSERT IGNORE INTO anime(id, title, original_title, summary, cover_url, pv_url, 
 (157,'体操武士','体操武士','时间是2002年。那个曾经强盛的日本男子体操界。 将人生倾注在体操上的前日本代表荒垣城太郎， 变得不再能随心所欲地表演了。 即使如此他仍然每天不断练习， 但仍然在某天被教练天草…','/covers/157.png','https://www.bilibili.com/video/BV15541177ok','2020 秋','ANIME','FINISHED',0,0),
 (158,'小马宝莉大电影','小马宝莉大电影','一股新黑暗势力威胁到小马谷，六位小伙伴紫悦、苹果嘉儿、云宝、碧琪、柔柔和珍奇离开小马国踏上难忘之旅，在旅途中他们结交新朋友，遇到刺激的挑战，必须通过友谊的魔力拯救自己的家园。','/covers/158.png','https://www.bilibili.com/video/BV11g4y1Z7dq','2022 秋','MOVIE','FINISHED',0,0);
 
--- 3.4.1 PV 地址统一为 Bilibili 视频
+-- 3.4.1 预览地址统一为 Bilibili 资源（BV/av 视频或番剧 ss/ep 链接）
 UPDATE anime SET pv_url='https://www.bilibili.com/video/BV1RomYBuEdG' WHERE id=1;
 UPDATE anime SET pv_url='https://www.bilibili.com/video/BV1nnNEzJEcg' WHERE id=2;
 UPDATE anime SET pv_url='https://www.bilibili.com/video/BV1Dv411675y' WHERE id=3;
@@ -2810,7 +2816,7 @@ INSERT IGNORE INTO comment_likes(user_id, comment_id) SELECT 1, id FROM comments
 INSERT IGNORE INTO comment_likes(user_id, comment_id) SELECT 4, id FROM comments WHERE id % 23 = 3 LIMIT 10;
 INSERT IGNORE INTO comment_likes(user_id, comment_id) SELECT 5, id FROM comments WHERE id % 29 = 7 LIMIT 8;
 
--- 3.8.1 清理下架作品与合并同一作品
+-- 3.10 清理下架作品与合并同一作品
 -- 《你的名字。》重复条目 26 合并到 8
 DELETE r FROM ratings r JOIN ratings t ON t.user_id = r.user_id AND t.anime_id = 8 WHERE r.anime_id = 26;
 DELETE w FROM watchlist w JOIN watchlist t ON t.user_id = w.user_id AND t.anime_id = 8 WHERE w.anime_id = 26;
@@ -2834,7 +2840,7 @@ SET title = '火影忍者（含疾风传）',
     original_title = 'NARUTO -ナルト- / NARUTO -ナルト- 疾風伝'
 WHERE id = 15;
 
--- 3.8.2 展示顺序：同系列 / 分季作品保持相邻，不合并
+-- 3.11 展示顺序：同系列 / 分季作品保持相邻，不合并
 UPDATE anime SET sort_order = id * 10;
 UPDATE anime SET sort_order = 31 WHERE id = 81;
 UPDATE anime SET sort_order = 91 WHERE id = 13;
@@ -2873,7 +2879,7 @@ UPDATE anime SET sort_order = 1051 WHERE id = 106;
 UPDATE anime SET sort_order = 1171 WHERE id = 133;
 UPDATE anime SET sort_order = 1211 WHERE id = 122;
 
--- 3.8.3 辉夜大小姐分季标注、新增番剧与相邻排序
+-- 3.12 辉夜大小姐分季标注、新增番剧、分类修正与相邻排序
 UPDATE anime SET title = '辉夜大小姐想让我告白 第一季' WHERE id = 29;
 UPDATE anime SET title = '辉夜大小姐想让我告白 第二季' WHERE id = 39;
 UPDATE anime SET sort_order = id * 10 WHERE id BETWEEN 134 AND 151;
@@ -2917,7 +2923,7 @@ INSERT IGNORE INTO anime_genres(anime_id, genre_id) VALUES
 (151,12),
 (151,13);
 UPDATE anime SET sort_order = 1501 WHERE id = 132;
--- 3.8.4 错误条目删除、新增运动番 / 电影与账号互动数据
+-- 3.13 错误条目删除、作品分类修正、运动番 / 电影与账号互动数据
 DELETE FROM anime WHERE id IN (3,132);
 UPDATE anime SET sort_order = id * 10 WHERE id BETWEEN 152 AND 158;
 UPDATE anime SET sort_order = 1531 WHERE id = 89;
@@ -2996,7 +3002,7 @@ INSERT IGNORE INTO watchlist(id, user_id, anime_id, status, created_at) VALUES
 (30006,49,152,'WATCHED','2026-11-06 10:00:00'),
 (30007,50,155,'WANT','2026-11-07 10:00:00'),
 (30008,51,158,'WATCHING','2026-11-08 10:00:00');
--- 3.8.5 保证每部作品至少有 11 条评分与 11 条评论，并覆盖全部演示账号
+-- 3.14 保证每部作品至少有 11 条评分与 11 条评论，并覆盖全部演示账号
 INSERT IGNORE INTO ratings(id, user_id, anime_id, score, created_at) VALUES
 (50001,2,9,10,'2026-11-10 12:00:00'),
 (50002,4,9,8,'2026-11-10 12:00:00'),
@@ -4694,7 +4700,7 @@ JOIN users u ON u.id = s.user_id
 JOIN anime a ON a.id = s.anime_id
 WHERE NOT EXISTS (SELECT 1 FROM comments c WHERE c.user_id = s.user_id AND c.anime_id = s.anime_id AND c.content = s.content);
 DROP TEMPORARY TABLE interaction_comment_seed;
--- 3.10 漫评与社群种子数据（显式 ID，重复执行不会重复插入）
+-- 3.15 漫评与社群种子数据（显式 ID，重复执行不会重复插入）
 INSERT IGNORE INTO reviews(id, user_id, anime_id, title, content, score, likes, created_at) VALUES
 (1,4,1,'当青春期遇见宇宙的裂缝','《胆大党 第二季》最迷人的地方，是它从来不把青春的笨拙藏起来。每一次大喊大叫背后，都有角色认真活着的证据，也有创作者对类型片节奏的精准把控。',10,342,'2026-11-20 20:30:00'),
 (2,5,21,'热闹背后，角色都留着一口气','《咒术回战》把战斗写得很快，但真正留下来的是角色在战斗间隙的犹豫。热闹不是目的，那些没有说出口的失落，才让下一场对决有了重量。',9,218,'2026-11-19 21:10:00'),

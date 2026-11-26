@@ -328,7 +328,7 @@ body {
 .topic-strip > * { position: relative; z-index: 1; }
 .topic-actions button { border-radius: 10px; }
 
-/* 详情：封面 + 信息 + 评分卡，PV 之后保持纵向 */
+/* 详情：封面 + 信息 + 评分卡，预览弹窗之后保持纵向 */
 .detail-page { padding-top: 30px; }
 .breadcrumb { margin-bottom: 18px; }
 .detail-page .detail-hero {

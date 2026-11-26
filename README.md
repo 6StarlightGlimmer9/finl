@@ -2,12 +2,37 @@
 
 Spring Boot 2.7 + Vue 3 的番剧评测与 ACGN 同好社群平台。
 
-## 一键初始化数据库
+## 端口约定
 
-MySQL 账号密码均为 `root`，在项目根目录执行：
+本项目不使用常见默认端口：
+
+| 服务 | 当前端口 | 避开默认端口 |
+| --- | --- | --- |
+| MySQL | `3307` | `3306` |
+| MySQL X Protocol | `33070` | `33060` |
+| Spring Boot 后端 | `8081` | `8080` |
+| Vite 前端 | `5174` | `5173` |
+
+## 启动数据库并初始化
+
+以管理员身份打开 PowerShell。先查看并重启 MySQL 服务：
 
 ```powershell
-mysql -u root -proot < database/acgn_screenroom.sql
+Get-Service *mysql*
+Restart-Service -Name 'MySQL2610'
+```
+
+如果服务名不是 `MySQL2610`，用 `Get-Service *mysql*` 查到的名称替换。确认端口：
+
+```powershell
+Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -eq 3307 }
+```
+
+MySQL 账号密码均为 `root`。PowerShell 不支持 `<` 输入重定向，请使用管道导入 SQL：
+
+```powershell
+$mysql = 'C:\Program Files\MySQL\MySQL Server 26.10\bin\mysql.exe'
+Get-Content -Raw -Encoding UTF8 .\database\acgn_screenroom.sql | & $mysql -u root -proot -P 3307 --protocol=TCP --default-character-set=utf8mb4
 ```
 
 `database` 文件夹现在只有一个权威脚本 `database/acgn_screenroom.sql`，文件内按「建库建表 / 旧库升级 / 种子数据 / 评分回算 / 管理查询」分区并附有注释。表结构包含用户、作品、标签、评分、评论、令牌，以及追番片单 `watchlist`、评论点赞 `comment_likes`、长篇漫评 `reviews` / `review_likes`、社群内容 `community_items` / `community_item_members` / `topic_posts`。
@@ -16,7 +41,7 @@ mysql -u root -proot < database/acgn_screenroom.sql
 
 150 部作品的封面均已放在 `frontend/public/covers/`，统一按 `/covers/{作品ID}.jpg|png` 保存，前端直接读取本地静态资源，不再依赖外部图床。已删除《我的英雄学院》系列与《链锯人：剧场版》《男子高中生的日常 剧场版》等错误条目，并将《你的名字。》《火影忍者 / 火影忍者 疾风传》等重复作品合并；《辉夜大小姐想让我告白》已标注第一季 / 第二季，新增 6 部 Bilibili 运动番与《小马宝莉大电影》，分季与剧场版作品保留独立条目，通过 `sort_order` 在番剧库中相邻展示。
 
-详情页“点击查看预览”弹窗只使用 Bilibili 资源，不再读取本地 MP4。后台的预览地址可填写 Bilibili 视频链接、番剧链接（如 `https://www.bilibili.com/bangumi/play/ss102261`）或 BV 号；番剧链接会自动解析为可内嵌的首集视频，解析不到资源时会在预览窗口显示不可用提示。
+详情页“点击查看预览”弹窗只使用 Bilibili 资源，不再读取本地 MP4。后台的预览地址可填写 Bilibili 视频链接、番剧 `ss...` / `ep...` 链接、BV 号或 av 号；番剧链接会自动解析为可内嵌的首集视频，解析不到资源时会在预览窗口显示不可用提示。
 
 所有展示分数均由 `ratings` 表中的用户评分记录实时聚合，同一用户对同一作品只保留一条评分，修改或撤销评分后分数与人数同步回算。
 
@@ -24,7 +49,8 @@ mysql -u root -proot < database/acgn_screenroom.sql
 
 - **追番片单**：详情页可标记「想看 / 在看 / 看过」，`/watchlist` 页面集中管理，状态带更新时间。
 - **评论点赞**：登录用户可点赞 / 取消点赞，后端 `comment_likes` 表防重复，评论数同步更新。
-- **真实社群动态**：社群页展示全站最新评论与热议作品，不再只是静态占位内容。
+- **漫评长评**：关联作品、作者评分、标签、写作榜、发布与点赞全部持久化，漫评页不再是静态 mock。
+- **真实社群动态**：话题、回复、小组、放映会、全站最新评论与热议作品均来自数据库；加入、报名、回复与点赞会写入 `community_items`、`community_item_members`、`topic_posts` 等表，刷新或换账号后状态仍然保留。
 - **搜索排序**：番剧库默认按系列顺序展示，分季 / 剧场版作品相邻；也可切换最高评分、最多评分人数、最新收录、作品名称四种排序。
 - **数据洞察**：管理员后台新增分类分布、评分分布、追番状态、近 7 天活跃与高分作品看板。
 - **明暗主题**：右上角可切换深色 / 浅色主题，偏好保存在浏览器本地。
@@ -32,26 +58,38 @@ mysql -u root -proot < database/acgn_screenroom.sql
 
 ## 启动后端
 
+在项目根目录打开 PowerShell：
+
 ```powershell
-cd backend
-mvn spring-boot:run
+$env:JAVA_HOME = 'C:\Program Files\Microsoft\jdk-11.0.33.101-hotspot'
+$env:SERVER_PORT = '8081'
+$env:DB_HOST = 'localhost'
+$env:DB_PORT = '3307'
+$env:DB_USERNAME = 'root'
+$env:DB_PASSWORD = 'root'
+Set-Location .\backend
+& 'D:\glimhan\finl\.tools\apache-maven-3.9.11\bin\mvn.cmd' spring-boot:run
 ```
 
-后端端口为 `8080`，数据库连接默认使用 `root/root`，可通过环境变量 `DB_USERNAME`、`DB_PASSWORD` 覆盖。
+后端端口为 `8081`，数据库连接到 `localhost:3307`。`SERVER_PORT`、`DB_HOST`、`DB_PORT`、`DB_USERNAME`、`DB_PASSWORD` 都可通过 PowerShell 环境变量覆盖；不设置时使用 `application.yml` 中的非默认端口。
 
 ## 启动前端
 
+在项目根目录打开 PowerShell：
+
 ```powershell
-cd frontend
-npm install
-npm run dev
+$env:VITE_PORT = '5174'
+$env:VITE_BACKEND_PORT = '8081'
+Set-Location .\frontend
+npm.cmd install
+npm.cmd run dev
 ```
 
-访问 http://localhost:5173。前端 `/api` 请求会自动代理到 `http://localhost:8080`。
+访问 **http://localhost:5174/#/**。前端 `/api` 请求会自动代理到 `http://localhost:8081`。Vite 已启用 `strictPort`，不会回退到默认 `5173`。
 
 ## 账号与权限
 
-数据库共 48 个演示用户，评论会显示用户昵称；每个账号都有固定的注册时间，个人中心会同步展示该账号的评分、评论与追番片单。全部 48 个账号都参与了评分与评论数据，每部作品均保证至少 11 条评分和 11 条评论。演示库账号密码保存在 `users.password` 字段中，按需求使用明文，不做哈希或加盐；登录、注册、评分、评论与片单功能均按明文密码工作。此配置仅用于本地演示。
+数据库共 48 个演示用户，评论会显示用户昵称；每个账号都有固定的注册时间，个人中心会同步展示该账号的评分、评论与追番片单。全部 48 个账号都参与了评分与评论数据，每部作品均保证至少 11 条评分和 11 条评论。演示库账号密码保存在 `users.password` 字段中，按需求使用明文，不做哈希或加盐；登录、注册、评分、评论与片单功能均按明文密码工作；登录逻辑仅对旧库可能残留的 `salt$hash` 值保留兼容校验。此配置仅用于本地演示。
 
 - 普通用户演示账号：`screenroom / 123456`
 - 管理员账号：`admin / admin123`
@@ -75,17 +113,20 @@ npm run dev
 
 - 查看真实注册用户、作品、评分和评论统计
 - 审核并删除全站评论
-- 修改作品资料、封面图片 URL、PV 地址与标签
+- 修改作品资料、封面图片 URL、预览地址（Bilibili 视频 / 番剧链接 / BV、av 号）与标签
 - 发布新动漫 / 电影，发布后首页轮播、番剧库与搜索立即可见
 
 ## 页面
 
-`/#/` 首页（含漫评 / 社群主打入口）、`/#/anime` 番剧库、`/#/anime?type=movie` 电影库、`/#/detail?id=1` 详情、`/#/reviews` 漫评（长评流 / 发布 / 点赞 / 写作榜）、`/#/community` 社群（话题 / 回复 / 小组 / 放映会 / 评论点赞）、`/#/watchlist` 我的片单、`/#/search?q=关键词` 搜索、`/#/profile` 个人中心、`/#/admin` 管理员后台。
+在 **http://localhost:5174/** 下使用 hash 路由：`/#/` 首页（含漫评 / 社群主打入口）、`/#/anime` 番剧库、`/#/anime?type=movie` 电影库、`/#/detail?id=1` 详情、`/#/reviews` 漫评（长评流 / 发布 / 点赞 / 写作榜）、`/#/community` 社群（话题 / 回复 / 小组 / 放映会 / 评论点赞）、`/#/watchlist` 我的片单、`/#/search?q=关键词` 搜索、`/#/profile` 个人中心、`/#/admin` 管理员后台。
 
 ## 主要接口
 
+接口默认基地址为 `http://localhost:8081/api`：
+
 - 认证：`POST /api/auth/login`、`POST /api/auth/register`、`POST /api/auth/logout`、`GET /api/auth/me`、`GET /api/auth/profile`
-- 内容：`GET /api/anime`、`GET /api/anime/{id}`、`GET /api/search`
+- 服务与内容：`GET /api`、`GET /api/anime`、`GET /api/anime/{id}`、`GET /api/search`
+- 预览：`GET /api/bilibili/resolve?url=...`
 - 评分：`GET /api/anime/{id}/rating`、`POST /api/anime/{id}/ratings`、`DELETE /api/anime/{id}/ratings`
 - 评论：`GET /api/anime/{id}/comments`、`POST /api/anime/{id}/comments`、`POST /api/comments/{id}/like`
 - 片单：`GET /api/watchlist`、`POST /api/watchlist/{animeId}`、`DELETE /api/watchlist/{animeId}`

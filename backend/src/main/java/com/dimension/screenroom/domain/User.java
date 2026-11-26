@@ -11,6 +11,7 @@ public class User {
     @Column(nullable = false, unique = true) public String username;
     @Column(nullable = false) public String nickname;
     @Column(nullable = false, unique = true) public String email;
+    // 本地演示库使用明文密码；PasswordUtil.hash/matches 仅用于旧库兼容
     @Column(name = "password", nullable = false) public String password;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "enum('USER','ADMIN')")

@@ -115,6 +115,7 @@ public class ScreenroomController {
         boolean passwordOk = false;
         if (user != null) {
             passwordOk = request.password.equals(user.password);
+            // 仅兼容旧库可能残留的 salt$hash；当前演示库 users.password 为明文
             if (!passwordOk && user.password != null && user.password.indexOf('$') > 0) {
                 passwordOk = PasswordUtil.matches(request.password, user.password);
             }
@@ -223,7 +224,7 @@ public class ScreenroomController {
     @GetMapping
     public Map<String, Object> serviceInfo() {
         return Map.of("name", "次元放映室 API", "status", "running",
-                "auth", "Bearer Token", "frontend", "http://localhost:5173");
+                "auth", "Bearer Token", "frontend", "http://localhost:5174");
     }
 
     @GetMapping("/anime")
