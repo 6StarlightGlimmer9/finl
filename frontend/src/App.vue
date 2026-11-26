@@ -90,6 +90,10 @@ function handleHashChange() {
   syncPage()
   window.scrollTo(0, 0)
 }
+function compactSummary(value, max = 92) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim()
+  return text.length > max ? `${text.slice(0, max)}…` : text
+}
 async function loadHomeData() {
   try {
     const list = await apiJson('/api/anime')
@@ -97,7 +101,7 @@ async function loadHomeData() {
     homeAnime.value = list
     featuredSlides.value = list.slice(0, 3).map((item, index) => ({
       title: item.title,
-      desc: item.summary || '把值得看的故事，放映给懂的人。',
+      desc: compactSummary(item.summary) || '把值得看的故事，放映给懂的人。',
       image: item.coverUrl,
       id: item.id,
       score: item.score,
