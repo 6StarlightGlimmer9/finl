@@ -153,7 +153,7 @@ onMounted(load)
       <div>
         <span class="section-kicker">COMMUNITY / 我们的主打</span>
         <h1>同好社群</h1>
-        <p>话题、小组、放映会与真实评论都在这里继续发生，让看完之后的交流不随着播放器关闭而结束。</p>
+        <p>话题、小组、放映会、作品评论与活跃创作者都在这里继续发生，让看完之后的交流不随着播放器关闭而结束。发起话题时写下具体片段，加入小组后留下持续片单，报名放映会后再补一段观感；48 个演示账号的回复、点赞、加入与报名状态都会写进数据库，换账号或刷新页面也不会消失。</p>
         <div class="social-stats">
           <span><b>{{ stats.topicCount || 0 }}</b> 个话题</span>
           <span><b>{{ stats.postCount || 0 }}</b> 条回复</span>
@@ -165,7 +165,7 @@ onMounted(load)
     </div>
 
     <div class="social-banner community-banner">
-      <div><span class="section-kicker">FIND YOUR PEOPLE</span><h2>从一个话题开始，找到愿意认真聊天的人</h2><p>这里的小组、话题和放映会都会真实记录到数据库，登录后的加入、报名与回复不会刷新丢失。</p></div>
+      <div><span class="section-kicker">FIND YOUR PEOPLE</span><h2>从一个话题开始，找到愿意认真聊天的人</h2><p>话题里可以带集数和具体画面长回复，小组会长期积累片单与观后记录，放映会把报名、到场讨论和事后补评串在一起。全站最新评论、热议作品、活跃创作者与趋势标签则由 48 个演示账号共同产生，页面刷新后依旧按真实记录呈现。</p></div>
       <div class="banner-icons"><Users :size="34" /><PenLine :size="34" /><Sparkles :size="34" /></div>
     </div>
 
@@ -195,11 +195,11 @@ onMounted(load)
       </div>
 
       <aside class="social-side">
-        <section class="side-card"><h3>活跃创作者</h3><div v-for="(writer, index) in data.writers" :key="writer.nickname" class="writer-row"><b>{{ String(index + 1).padStart(2, '0') }}</b><span>{{ writer.nickname }}</span><small>{{ writer.count }} 篇 · {{ writer.likes }} 赞</small></div><button class="text-link" @click="goReviews">去漫评页 <ArrowUpRight :size="14" /></button></section>
-        <section class="side-card"><h3>热门小组</h3><div v-for="group in data.groups" :key="group.id" class="group-row"><div class="group-symbol"><Users :size="18" /></div><div><b>{{ group.name || group.title }}</b><small>{{ group.tag }} · {{ Number(group.memberCount).toLocaleString() }} 人</small></div><button :class="{ joined: group.joined }" @click="toggleGroup(group)">{{ group.joined ? '已加入' : '加入' }}</button></div></section>
+        <section class="side-card"><h3>活跃创作者</h3><p class="side-card-intro">把漫评页里持续输出的作者带进社群，方便从一篇文章顺藤找到更多同好。</p><div v-for="(writer, index) in data.writers" :key="writer.nickname" class="writer-row"><b>{{ String(index + 1).padStart(2, '0') }}</b><span>{{ writer.nickname }}</span><small>{{ writer.count }} 篇 · {{ writer.likes }} 赞</small></div><button class="text-link" @click="goReviews">去漫评页 <ArrowUpRight :size="14" /></button></section>
+        <section class="side-card"><h3>热门小组</h3><p class="side-card-intro">按题材与观看习惯聚集长期讨论，加入状态会写入数据库，换账号后仍能看到自己的记录。</p><div v-for="group in data.groups" :key="group.id" class="group-row"><div class="group-symbol"><Users :size="18" /></div><div><b>{{ group.name || group.title }}</b><small>{{ group.tag }} · {{ Number(group.memberCount).toLocaleString() }} 人</small></div><button :class="{ joined: group.joined }" @click="toggleGroup(group)">{{ group.joined ? '已加入' : '加入' }}</button></div></section>
         <section v-if="activeEvent" class="side-card event-card"><h3>放映会报名</h3><div class="event-title"><Calendar :size="18" /><b>{{ activeEvent.title }}</b></div><p>{{ activeEvent.description }}</p><small>{{ activeEvent.tag }} · {{ Number(activeEvent.attendeeCount).toLocaleString() }} 人已报名</small><button class="primary-button full" :class="{ joined: activeEvent.signedUp }" @click="toggleEvent(activeEvent)">{{ activeEvent.signedUp ? '取消报名' : '立即报名' }}</button></section>
-        <section class="side-card"><h3>热议作品</h3><div v-for="item in data.hotAnime" :key="item.animeId" class="community-hot" @click="openDetail(item.animeId)"><img :src="item.coverUrl" :alt="item.title" /><div><b>{{ item.title }}</b><small><MessageCircle :size="12" /> {{ item.commentCount }} 条讨论</small></div><Film :size="15" /></div></section>
-        <section class="side-card"><h3>趋势标签</h3><div class="tag-cloud"><button v-for="tag in data.trendingTags" :key="tag.name" @click="keyword = tag.name">{{ tag.name }} <small>{{ tag.count }}</small></button></div></section>
+        <section class="side-card"><h3>热议作品</h3><p class="side-card-intro">按全站评论数量聚合，点击封面就能回到作品详情继续补一条自己的观感。</p><div v-for="item in data.hotAnime" :key="item.animeId" class="community-hot" @click="openDetail(item.animeId)"><img :src="item.coverUrl" :alt="item.title" /><div><b>{{ item.title }}</b><small><MessageCircle :size="12" /> {{ item.commentCount }} 条讨论</small></div><Film :size="15" /></div></section>
+        <section class="side-card"><h3>趋势标签</h3><p class="side-card-intro">由话题与小组标签实时聚合，点击标签即可筛出正在被讨论的内容。</p><div class="tag-cloud"><button v-for="tag in data.trendingTags" :key="tag.name" @click="keyword = tag.name">{{ tag.name }} <small>{{ tag.count }}</small></button></div></section>
       </aside>
     </div>
 

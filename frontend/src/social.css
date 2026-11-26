@@ -47,7 +47,8 @@
 .editorial-actions .ghost-button { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; }
 
 .side-card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-sm); }
-.side-card h3 { margin: 0 0 14px; font-size: 16px; }
+.side-card h3 { margin: 0 0 8px; font-size: 16px; }
+.side-card-intro { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .side-empty { color: var(--muted); font-size: 12px; }
 .writer-row { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
 .writer-row:last-of-type { border-bottom: 0; }

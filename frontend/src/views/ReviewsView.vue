@@ -116,7 +116,7 @@ onMounted(load)
       <div>
         <span class="section-kicker">EDITORIAL / 我们的主打</span>
         <h1>漫评</h1>
-        <p>认真写下观看之后，仍然留在心里的那一点感受。这里不比谁写得快，只比谁写得更诚实。</p>
+        <p>认真写下观看之后，仍然留在心里的那一点感受。这里不比谁写得快，只比谁写得更诚实：关联具体作品、给出自己的分数、带上作品标签，再从一个被留住的镜头、一次沉默或一段配乐出发，把判断的来处写清楚。48 个演示账号共同参与长评、点赞与写作榜，让不同口味、不同观看经验能在这里并排出现。</p>
         <div class="social-stats">
           <span><b>{{ stats.total || 0 }}</b> 篇长评</span>
           <span><b>{{ stats.writers || 0 }}</b> 位作者</span>
@@ -128,7 +128,7 @@ onMounted(load)
     </div>
 
     <div class="social-banner reviews-banner">
-      <div><span class="section-kicker">DIFFERENT FROM BILIBILI</span><h2>把短评沉淀成一篇能被读完的文章</h2><p>关联作品、给出评分、带上标签，让观点有来处，也让同好能顺着一部作品找到你。</p></div>
+      <div><span class="section-kicker">DIFFERENT FROM BILIBILI</span><h2>把短评沉淀成一篇能被读完的文章</h2><p>这里不按播放量排观点，而是按作品、评分、标签和作者把长评组织起来：你可以顺着一部番找到所有认真写过的角度，也可以从写作榜发现最近持续输出的人。最新、最多共鸣、最高打分三种流线，让快读与慢读都有自己的入口。</p></div>
       <Sparkles :size="52" />
     </div>
 
@@ -162,9 +162,9 @@ onMounted(load)
       </div>
 
       <aside class="social-side">
-        <section class="side-card"><h3>本周写作榜</h3><p v-if="!writers.length" class="side-empty">还没有作者数据。</p><div v-for="(writer, index) in writers" :key="writer.nickname" class="writer-row"><b>{{ String(index + 1).padStart(2, '0') }}</b><span>{{ writer.nickname }}</span><small>{{ writer.count }} 篇 · {{ writer.likes }} 赞</small></div></section>
-        <section class="side-card"><h3>热门标签</h3><div class="tag-cloud"><button v-for="tag in hotGenres" :key="tag.name" @click="keyword = tag.name">{{ tag.name }} <small>{{ tag.count }}</small></button></div></section>
-        <section class="side-card side-cta"><BookOpen :size="26" /><h3>写一篇属于你的长评</h3><p>选一部作品，给一个分数，把还没散掉的感受留在这里。</p><button class="primary-button full" @click="openWriting">开始写作</button></section>
+        <section class="side-card"><h3>本周写作榜</h3><p class="side-card-intro">按长评数量与累计共鸣排序，持续记录谁最近把观感写成了完整文章。</p><p v-if="!writers.length" class="side-empty">还没有作者数据。</p><div v-for="(writer, index) in writers" :key="writer.nickname" class="writer-row"><b>{{ String(index + 1).padStart(2, '0') }}</b><span>{{ writer.nickname }}</span><small>{{ writer.count }} 篇 · {{ writer.likes }} 赞</small></div></section>
+        <section class="side-card"><h3>热门标签</h3><p class="side-card-intro">从已被反复讨论的作品标签进入长评流，快速找到同一类型下的不同观点。</p><div class="tag-cloud"><button v-for="tag in hotGenres" :key="tag.name" @click="keyword = tag.name">{{ tag.name }} <small>{{ tag.count }}</small></button></div></section>
+        <section class="side-card side-cta"><BookOpen :size="26" /><h3>写一篇属于你的长评</h3><p>选一部作品，给一个分数，再从一个具体片段写起：哪一幕让你停下来，哪个角色改变了判断，哪些细节值得二刷验证。发布后会立即进入长评流、写作榜与点赞数据。</p><button class="primary-button full" @click="openWriting">开始写作</button></section>
       </aside>
     </div>
 

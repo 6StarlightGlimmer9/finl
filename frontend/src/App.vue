@@ -277,14 +277,14 @@ onUnmounted(() => {
             <span class="signature-icon"><PenLine :size="22" /></span>
             <span class="section-kicker">EDITORIAL</span>
             <h3>漫评</h3>
-            <p>长评、打分、写作榜与真实点赞。把看完之后仍然留下的感受，写成一篇能被读完的文章。</p>
+            <p>把短评沉淀成能被读完的文章：关联作品、写下评分、带上标签，查看写作榜与热门视角，再给同好的长评点一次赞。48 个演示账号都参与了长评与点赞，观点不再只来自一个声音。</p>
             <span class="signature-link">进入漫评 <ChevronRight :size="16" /></span>
           </button>
           <button class="signature-card community-card" @click="navigate('社群')">
             <span class="signature-icon"><Users :size="22" /></span>
             <span class="section-kicker">COMMUNITY</span>
             <h3>社群</h3>
-            <p>话题广场、兴趣小组、放映会报名与全站真实评论，让每一次观看之后都能继续发生交流。</p>
+            <p>话题广场、长回复、兴趣小组、放映会报名、全站评论点赞与趋势标签都由真实账号驱动。加入、报名、回复和点赞会落到数据库里，让看完之后的讨论能留下来，而不是刷新一次就散掉。</p>
             <span class="signature-link">进入社群 <ChevronRight :size="16" /></span>
           </button>
         </div>
@@ -301,7 +301,7 @@ onUnmounted(() => {
         <div class="section-heading"><div><span class="section-kicker">VISUAL INDEX</span><h2>本周海报墙</h2></div><button class="more-link" @click="navigate('番剧')">进入番剧库 <ChevronRight :size="16" /></button></div>
         <div class="poster-grid"><article v-for="(poster, index) in posters" :key="poster.title" class="poster-card reveal-up" :class="{ 'delay-1': index % 2 === 1 }" @click="openDetail(poster.id)"><img :src="poster.image" :alt="poster.title" /><div><span>{{ poster.label }}</span><h3>{{ poster.title }}</h3></div></article></div>
       </section>
-      <section class="topic-strip wrap"><div><span class="section-kicker">WATCHING TOGETHER</span><h2>正在放映的故事，也正在被讨论</h2><p>去漫评里读长评，去社群里找同好，让观看之后的讨论继续发生。</p></div><div class="topic-actions"><button @click="navigate('漫评')"><PenLine :size="16" /> 精选漫评</button><button @click="navigate('社群')"><Users :size="16" /> 进入社群</button></div></section>
+      <section class="topic-strip wrap"><div><span class="section-kicker">WATCHING TOGETHER</span><h2>正在放映的故事，也正在被讨论</h2><p>一部作品播完之后，故事还可以继续：在漫评里读完整的观看理由，在社群里接上话题、回复、小组与放映会，让不同账号留下的判断彼此照面，也让下一次打开页面时有新的讨论可看。</p></div><div class="topic-actions"><button @click="navigate('漫评')"><PenLine :size="16" /> 精选漫评</button><button @click="navigate('社群')"><Users :size="16" /> 进入社群</button></div></section>
     </main>
     <main v-else>
       <AnimeListView v-if="currentPage === '番剧' || currentPage === '电影'" />
